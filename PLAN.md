@@ -77,9 +77,14 @@ Layouts live in data (`keypad-layouts.h`) so they can be adjusted without touchi
   - `GAME1.GOG`/`GAME2.GOG` + `.INS` are raw CD images (MODE1/2352) with cue sheets; their CD-audio music is in `MUSIC/xeenNN.ogg`. They aren't needed, because the device build has no audio.
   - ScummVM also needs its own engine data file **`mm.dat`** (`dists/engine-data/`), which must go in the device bundle.
   - Data folders: `~/games/xeen/scummvm/world-of-xeen` (recommended; Clouds is playable inside it) and `~/games/xeen/scummvm/clouds-of-xeen`.
-- [ ] Add the `scummvm` submodule, pinned to a release tag; build stock ScummVM on Ubuntu with only the `mm` engine; play into the first town.
+- [x] Add the `scummvm` submodule, pinned to a release tag. It's shallow, at **`v2026.4.0`** (`7d2709da`); ScummVM now numbers releases by date.
+- [x] Build with only the Xeen engine: `tools/build-host.sh null` (configure flag `--disable-all-engines --enable-engine=xeen`, which builds `mm` with the `xeen` subengine and leaves out `mm1`). It builds cleanly with g++ 15.
+- [x] Detection: `mm:worldofxeen` ("Might and Magic: World of Xeen (DOS/English)") and `mm:cloudsofxeen` ("Might and Magic IV: Clouds of Xeen (DOS/English)").
+- [x] Headless boot (null backend, 15 s): loads `mm.dat` from `--extrapath=scummvm/dists/engine-data`, sets a 320×200 mode, no crash. **Peak RSS ≈ 25 MB** (debug build), well under 512 MB.
+- [x] Toolchain finding for Phase 1: this ScummVM needs only **C++11** and rejects only GCC ≤ 4.7, so the SDK's GCC 6 should be enough.
+- [ ] Play into the first town with the SDL build: `tools/build-host.sh sdl` (needs `libsdl2-dev`).
 - [ ] Grayscale preview: run with a debug filter (or capture screenshots and convert them) at 16 levels, with and without dither. **Gate: the UI and automap must stay readable.** If not, tune the contrast curve before continuing.
-- [ ] Measure peak RSS while playing; it must fit well under 512 MB (expected: tens of MB).
+- [ ] Measure peak RSS while playing (boot alone is ≈ 25 MB, see above); it must fit well under 512 MB.
 
 ### Phase 1 — Toolchain smoke test (≤1 day)
 - [ ] Cross-compile a C++ hello-world with InkView using the `SDK-B288` toolchain and run it on the device. This checks that C++ (libstdc++ static, `-std=c++11`/`c++14`) works, since inkquest only proved C.
