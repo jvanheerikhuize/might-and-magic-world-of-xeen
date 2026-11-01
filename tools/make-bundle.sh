@@ -4,7 +4,8 @@
 #   tools/make-bundle.sh [--install]
 #
 # Bundle (build/bundle/applications/):
-#   mmiv.app             launcher (packaging/mmiv.app)
+#   mmiv.app             launcher: landscape full screen (packaging/mmiv.app)
+#   mmiv-keypad.app      launcher: portrait with the touch keypad
 #   mmiv/scummvm         device build (tools/build-device.sh pocketbook)
 #   mmiv/mm.dat          ScummVM engine data
 #   mmiv/game/           xeen.cc dark.cc intro.cc from ~/games/xeen (your GOG copy)
@@ -24,7 +25,7 @@ reader=${READER:-/run/media/$USER/PB628}
 
 rm -rf "$root/build/bundle"
 mkdir -p "$out/mmiv/game" "$out/mmiv/saves"
-cp "$root/packaging/mmiv.app" "$out/"
+cp "$root/packaging/mmiv.app" "$root/packaging/mmiv-keypad.app" "$out/"
 cp "$bin" "$out/mmiv/scummvm"
 cp "$root/scummvm/dists/engine-data/mm.dat" "$out/mmiv/"
 cp -L "$data"/scummvm/world-of-xeen/*.cc "$out/mmiv/game/"
@@ -35,7 +36,7 @@ if [[ ${1:-} == --install ]]; then
 	[[ -d $reader/applications ]] || { echo "reader not mounted at $reader" >&2; exit 1; }
 	dst=$reader/applications
 	mkdir -p "$dst/mmiv/game" "$dst/mmiv/saves"
-	cp "$out/mmiv.app" "$dst/"
+	cp "$out/mmiv.app" "$out/mmiv-keypad.app" "$dst/"
 	cp "$out/mmiv/scummvm" "$out/mmiv/mm.dat" "$dst/mmiv/"
 	cp "$out"/mmiv/game/* "$dst/mmiv/game/"
 	# Saves: never overwrite what the reader already has.
@@ -44,7 +45,7 @@ if [[ ${1:-} == --install ]]; then
 		[[ -e $dst/mmiv/saves/$(basename "$s") ]] || cp "$s" "$dst/mmiv/saves/"
 	done
 	sync
-	for f in mmiv.app mmiv/scummvm mmiv/mm.dat mmiv/game/xeen.cc mmiv/game/dark.cc; do
+	for f in mmiv.app mmiv-keypad.app mmiv/scummvm mmiv/mm.dat mmiv/game/xeen.cc mmiv/game/dark.cc; do
 		cmp -s "$out/$f" "$dst/$f" || { echo "VERIFY FAILED: $f" >&2; exit 1; }
 	done
 	echo "installed and verified in $dst"

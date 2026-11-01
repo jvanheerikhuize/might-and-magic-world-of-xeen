@@ -8,14 +8,14 @@ root=$(cd "$(dirname "$0")/../.." && pwd)
 t=$(mktemp -d)
 trap 'rm -rf "$t"' EXIT
 mkdir -p "$t/mmiv/saves"
-cp "$root/packaging/mmiv.app" "$t/"
-printf '#!/bin/sh\necho "$@"\n' >"$t/mmiv/scummvm"
+cp "$root/packaging/mmiv.app" "$root/packaging/mmiv-keypad.app" "$t/"
+printf '#!/bin/sh\necho "layout=$MMIV_LAYOUT $@"\n' >"$t/mmiv/scummvm"
 SH=$(command -v busybox >/dev/null && echo "busybox sh" || echo sh)
 
 fail=0
-expect() {  # description, expected substring or "!--save-slot"
+expect() {  # description, expected substring or "!--save-slot" [launcher]
 	local got
-	got=$($SH "$t/mmiv.app")
+	got=$(env -u MMIV_LAYOUT $SH "$t/${3:-mmiv.app}")
 	if [[ $2 == "!--save-slot" ]]; then
 		[[ $got != *--save-slot* ]] && echo "ok   $1" || { echo "FAIL $1: $got"; fail=1; }
 	else
@@ -31,4 +31,10 @@ expect "suspend save is newest: resume slot 99" "--save-slot=99 "
 touch -d '2026-11-01 12:00' "$t/mmiv/saves/worldofxeen.003"
 expect "newer manual save: resume slot 3" "--save-slot=3 "
 expect "game id and paths passed" "--path=$t/mmiv/game"
+expect "default layout: landscape" "layout=landscape "
+expect "keypad launcher: portrait" "layout=portrait " mmiv-keypad.app
+expect "keypad launcher resumes too" "--save-slot=3 " mmiv-keypad.app
+echo "landscape-flip  # turned the other way" >"$t/mmiv/layout"
+expect "layout file chooses the layout" "layout=landscape-flip "
+expect "keypad launcher overrides the layout file" "layout=portrait " mmiv-keypad.app
 exit $fail
