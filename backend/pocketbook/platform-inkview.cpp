@@ -50,10 +50,17 @@ namespace {
 
 const int kPollMs = 20;
 
+// Milliseconds since the app started. long is 32 bits on the reader, so
+// wall-clock ms (tv_sec * 1000) overflowed; a monotonic clock from start-up
+// stays in range for ~24 days and does not jump when the reader sets its clock.
 long nowMs() {
-	timeval t;
-	gettimeofday(&t, nullptr);
-	return t.tv_sec * 1000L + t.tv_usec / 1000;
+	static int64_t start = -1;
+	timespec t;
+	clock_gettime(CLOCK_MONOTONIC, &t);
+	int64_t ms = (int64_t)t.tv_sec * 1000 + t.tv_nsec / 1000000;
+	if (start < 0)
+		start = ms;
+	return (long)(ms - start);
 }
 
 class InkViewPlatform : public Platform {
@@ -163,6 +170,16 @@ public:
 		_input.push_back(in);
 		if (in.type == Input::kTouchDown || in.type == Input::kKeyDown || in.type == Input::kMainMenu)
 			_policy.onInput(nowMs());
+	}
+
+	// The panel reports moves far faster than the engine reads them: only the
+	// latest position of a run of moves matters.
+	void pushMove(const Input &in) {
+		std::lock_guard<std::mutex> lk(_mu);
+		if (!_input.empty() && _input.back().type == Input::kTouchMove)
+			_input.back() = in;
+		else
+			_input.push_back(in);
 	}
 
 	void pushKey(int code, uint16_t ascii) {
@@ -542,6 +559,11 @@ int handler(int type, int p1, int p2) {
 			pf->keypadUp();
 		}
 		pf->push(in);  // the OSystem turns button taps into keys (keypad.cpp)
+		break;
+	case EVT_POINTERMOVE:
+		in.type = Input::kTouchMove;  // the OSystem decides whether it is a drag
+		fromPanel(layout(), p1, p2, in.x, in.y);
+		pf->pushMove(in);
 		break;
 	case EVT_KEYPRESS:
 	case EVT_KEYREPEAT:

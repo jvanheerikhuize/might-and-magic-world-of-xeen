@@ -71,6 +71,15 @@ test ! -e build/test-delete/saves/worldofxeen.001
 test -f build/test-delete/saves/worldofxeen.000
 echo "ok   slot 1 deleted from the load list; slot 0 kept"
 
+echo "== dragging scrolls a list"
+MMIV_LAYOUT=landscape tools/run-host-script.sh tests/host/drag-scroll.txt build/test-drag 0
+# Text rows are too fine for same-shot.py's block signatures: compare pixels.
+# A thumb drag that does nothing changes 0%; a scroll ~0.9%. Without moves the
+# swipe is a tap that moves the selection highlight (~6%), hence the upper bound.
+python3 -I tools/pixel-diff.py build/test-drag/dr01-top.pgm build/test-drag/dr02-thumb.pgm 0.3
+python3 -I tools/pixel-diff.py build/test-drag/dr02-thumb.pgm build/test-drag/dr03-swipe.pgm 0.3 3
+echo "ok   thumb drag and finger swipe both scroll the save list"
+
 echo "== a burst of keys all reaches the game"
 tools/run-host-script.sh tests/host/key-burst.txt build/test-burst 0
 python3 -I tools/same-shot.py build/test-burst/b01-start.pgm build/test-burst/b03-full-circle.pgm

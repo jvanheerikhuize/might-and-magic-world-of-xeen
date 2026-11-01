@@ -44,15 +44,16 @@ RefreshOp RefreshPolicy::poll(long now) {
 	if (_pending.empty() && !_full)
 		return op;
 	// Responsive: the change began shortly after the player's last input.
-	bool responsive = _full || _firstAt - _inputAt <= _p.inputWindowMs;
+	bool responsive = _full || (_hadInput && _firstAt - _inputAt <= _p.inputWindowMs);
+	long sincePanel = _hadPanel ? now - _lastPanel : _p.ambientIntervalMs + _p.smallIntervalMs;
 	bool quiet = now - _lastAt >= _p.settleMs;
 	bool overdue = now - _firstAt >= _p.maxWaitMs;
 	if (!quiet && !overdue)
 		return op;
-	if (!responsive && now - _lastPanel < _p.ambientIntervalMs)
+	if (!responsive && sincePanel < _p.ambientIntervalMs)
 		return op;  // animation: keep accumulating
 	int area = areaPct(_pending);
-	if (!_full && area < _p.smallAreaPct && now - _lastPanel < _p.smallIntervalMs)
+	if (!_full && area < _p.smallAreaPct && sincePanel < _p.smallIntervalMs)
 		return op;  // keep accumulating small animation changes
 
 	bool flash = _full || _ghost + area >= _p.ghostHardPct ||
@@ -70,6 +71,7 @@ RefreshOp RefreshPolicy::poll(long now) {
 	_pending = Box();
 	_full = false;
 	_lastPanel = now;
+	_hadPanel = true;
 	return op;
 }
 

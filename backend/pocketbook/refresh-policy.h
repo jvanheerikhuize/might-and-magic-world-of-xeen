@@ -70,7 +70,10 @@ public:
 	// Next poll should be a full refresh (resume from background, etc.).
 	void forceFull(long now);
 	// The player tapped or pressed a key at time now.
-	void onInput(long now) { _inputAt = now; }
+	void onInput(long now) {
+		_inputAt = now;
+		_hadInput = true;
+	}
 
 	int areaPct(const Box &b) const;
 	int ghostPct() const { return _ghost; }
@@ -80,7 +83,12 @@ private:
 	RefreshParams _p;
 	Box _pending;
 	bool _full = false;
-	long _firstAt = 0, _lastAt = 0, _lastPanel = -1000000, _inputAt = -1000000;
+	// "Never" is a flag, not a far-past time: on the reader (32-bit long,
+	// wall-clock ms) any sentinel can be later than now, and then every frame
+	// before the first input looked like an answer to input (2026-11-01 test:
+	// ~4 refreshes/s of idle animation after each start).
+	long _firstAt = 0, _lastAt = 0, _lastPanel = 0, _inputAt = 0;
+	bool _hadInput = false, _hadPanel = false;
 	int _ghost = 0;
 };
 

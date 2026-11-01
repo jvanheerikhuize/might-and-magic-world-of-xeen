@@ -92,12 +92,22 @@ void OSystem_PocketBook::translate(const Input &in) {
 	case Input::kTouchUp: {
 		int x, y;
 		if (!eink()->panelToScreen(in.x, in.y, x, y)) {
-			if (in.type == Input::kTouchDown)
+			if (in.type == Input::kTouchDown) {
 				pressKeypad(in.x, in.y);
-			return;
+				return;
+			}
+			if (!_touching)
+				return;
+			// A drag that left the frame: release where it was last inside, or
+			// ScummVM would keep the button held.
+			x = _mouse.x;
+			y = _mouse.y;
 		}
 		_mouse = Common::Point(x, y);
 		ev.mouse = _mouse;
+		_touching = in.type == Input::kTouchDown;
+		_dragging = false;
+		_touchStart = Common::Point(in.x, in.y);
 		if (in.type == Input::kTouchDown) {
 			// Move first so hover-driven UI sees the position, then press.
 			ev.type = Common::EVENT_MOUSEMOVE;
@@ -106,6 +116,21 @@ void OSystem_PocketBook::translate(const Input &in) {
 		} else {
 			ev.type = Common::EVENT_LBUTTONUP;
 		}
+		_pending.push(ev);
+		return;
+	}
+	case Input::kTouchMove: {
+		// Dragging: scrollbar thumbs, sliders, lists. Only for a touch that went
+		// down inside the frame (not on the keypad), and only past the slop.
+		int x, y;
+		if (!_touching || !eink()->panelToScreen(in.x, in.y, x, y))
+			return;
+		if (!_dragging && ABS(in.x - _touchStart.x) <= kDragSlop && ABS(in.y - _touchStart.y) <= kDragSlop)
+			return;
+		_dragging = true;
+		_mouse = Common::Point(x, y);
+		ev.mouse = _mouse;
+		ev.type = Common::EVENT_MOUSEMOVE;
 		_pending.push(ev);
 		return;
 	}

@@ -28,7 +28,9 @@ namespace PocketBook {
 struct Input {
 	// kTextBegin: typed text follows (keyboard answer); the OSystem clears a
 	// pre-filled field first where that is needed (ScummVM's menus).
-	enum Type { kNone, kTouchDown, kTouchUp, kKeyDown, kKeyUp, kQuit, kSuspend, kResume, kMainMenu, kTextBegin };
+	// kTouchMove: the finger moved while down, past a small threshold so taps
+	// stay taps (drags: scrollbars, sliders, lists).
+	enum Type { kNone, kTouchDown, kTouchUp, kTouchMove, kKeyDown, kKeyUp, kQuit, kSuspend, kResume, kMainMenu, kTextBegin };
 	Type type = kNone;
 	int x = 0, y = 0;        // touch: panel coordinates
 	int keycode = 0;         // key: Common::KeyCode value
