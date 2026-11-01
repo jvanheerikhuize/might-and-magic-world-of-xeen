@@ -61,3 +61,10 @@ grep -q 'text input on' build/test-keyboard/present.log
 grep -q 'text input off' build/test-keyboard/present.log
 test -f build/test-keyboard/saves/worldofxeen.001
 echo "ok   keyboard requested for a text field; the typed name saved slot 1"
+
+echo "== delete a save by touch"
+MMIV_SAVES_FROM=build/test-keyboard/saves MMIV_LAYOUT=landscape \
+	tools/run-host-script.sh tests/host/delete-save.txt build/test-delete 0
+test ! -e build/test-delete/saves/worldofxeen.001
+test -f build/test-delete/saves/worldofxeen.000
+echo "ok   slot 1 deleted from the load list; slot 0 kept"

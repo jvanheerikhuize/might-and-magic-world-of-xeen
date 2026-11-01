@@ -1,0 +1,297 @@
+EVT_INIT screen 758x1024
+engine thread: scummvm_main with 6 args
+EVT_FOREGROUND
+WARNING: File::open: node does not exist!
+Creating configuration file: /mnt/ext1/applications/mmiv/scummvm.ini
+WARNING: No hardware input were defined, using defaults!
+Running Might and Magic: World of Xeen (DOS/English)
+dark.cc: df194483ecea6abc0511637d712ced7c, 11217676 bytes.
+xeen.cc: 0cffbab533d9afe140e69ec93096f43e, 13435646 bytes.
+WARNING: generateZipSet: Could not find 'gui-icons.dat'!
+WARNING: Could not find theme 'scummremastered' falling back to builtin!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+keyboard: sent 4 characters
+WARNING: initWithU32String: Fribidi not available, will use input strings as fallback.!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+EVT_BACKGROUND
+suspend: saved to slot 99
+EVT_FOREGROUND
+EVT_BACKGROUND
+suspend: game cannot be saved right now (combat, event or no-save area)
+EVT_EXIT
+engine thread: scummvm_main returned 0
+==== mmiv start 2026-11-01 12:52:32 ====
+arg 0: /mnt/ext1/applications/mmiv/scummvm
+arg 1: --config=/mnt/ext1/applications/mmiv/scummvm.ini
+arg 2: --savepath=/mnt/ext1/applications/mmiv/saves
+arg 3: --path=/mnt/ext1/applications/mmiv/game
+arg 4: --save-slot=99
+arg 5: mm:worldofxeen
+EVT_INIT screen 758x1024
+engine thread: scummvm_main with 6 args
+EVT_FOREGROUND
+Using configuration file: /mnt/ext1/applications/mmiv/scummvm.ini
+WARNING: No hardware input were defined, using defaults!
+Running Might and Magic: World of Xeen (DOS/English)
+dark.cc: df194483ecea6abc0511637d712ced7c, 11217676 bytes.
+xeen.cc: 0cffbab533d9afe140e69ec93096f43e, 13435646 bytes.
+WARNING: generateZipSet: Could not find 'gui-icons.dat'!
+WARNING: Could not find theme 'scummremastered' falling back to builtin!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+EVT_BACKGROUND
+suspend: saved to slot 99 (35 ms)
+EVT_EXIT
+panel 54s: 332 partial (avg 7% area, 2 ms/call), 13 full (31 ms/call)
+engine thread: scummvm_main returned 0
+==== mmiv start 2026-11-01 13:04:36 ====
+arg 0: /mnt/ext1/applications/mmiv/scummvm
+arg 1: --config=/mnt/ext1/applications/mmiv/scummvm.ini
+arg 2: --savepath=/mnt/ext1/applications/mmiv/saves
+arg 3: --path=/mnt/ext1/applications/mmiv/game
+arg 4: --save-slot=99
+arg 5: mm:worldofxeen
+layout landscape: 960x600 frame at 32,4 (3x), orientation 1
+EVT_INIT screen 1024x758 orientation 1
+engine thread: scummvm_main with 6 args
+EVT_FOREGROUND
+Using configuration file: /mnt/ext1/applications/mmiv/scummvm.ini
+WARNING: No hardware input were defined, using defaults!
+Running Might and Magic: World of Xeen (DOS/English)
+dark.cc: df194483ecea6abc0511637d712ced7c, 11217676 bytes.
+xeen.cc: 0cffbab533d9afe140e69ec93096f43e, 13435646 bytes.
+WARNING: generateZipSet: Could not find 'gui-icons.dat'!
+WARNING: Could not find theme 'scummremastered' falling back to builtin!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+touch 835,523
+touch 843,483
+touch 848,481
+touch 343,306
+touch 865,221
+panel 60s: 164 partial (avg 15% area, 4 ms/call), 13 full (69 ms/call)
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+panel 60s: 84 partial (avg 21% area, 1 ms/call), 5 full (3 ms/call)
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+panel 60s: 70 partial (avg 24% area, 1 ms/call), 6 full (2 ms/call)
+panel 60s: 215 partial (avg 22% area, 3 ms/call), 12 full (2 ms/call)
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+panel 60s: 29 partial (avg 13% area, 1 ms/call), 3 full (4 ms/call)
+safety save: saved to slot 99 (35 ms)
+WARNING: initWithU32String: Fribidi not available, will use input strings as fallback.!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+panel 60s: 90 partial (avg 26% area, 45 ms/call), 29 full (2 ms/call)
+panel 60s: 87 partial (avg 16% area, 1 ms/call), 3 full (6 ms/call)
+panel 60s: 119 partial (avg 20% area, 2 ms/call), 7 full (1 ms/call)
+EVT_BACKGROUND
+suspend: game cannot be saved right now (combat, event or no-save area)
+EVT_EXIT
+panel 26s: 153 partial (avg 17% area, 3 ms/call), 6 full (2 ms/call)
+engine thread: scummvm_main returned 0
+==== mmiv start 2026-11-01 15:22:44 ====
+arg 0: /mnt/ext1/applications/mmiv/scummvm
+arg 1: --config=/mnt/ext1/applications/mmiv/scummvm.ini
+arg 2: --savepath=/mnt/ext1/applications/mmiv/saves
+arg 3: --path=/mnt/ext1/applications/mmiv/game
+arg 4: --themepath=/mnt/ext1/applications/mmiv
+arg 5: --gui-theme=scummmodern
+arg 6: --save-slot=99
+arg 7: mm:worldofxeen
+audio: /dev/snd present, /proc/asound/cards: (none)
+
+layout landscape: 960x600 frame at 32,79 (3x), orientation 1
+EVT_INIT screen 1024x758 orientation 1
+engine thread: scummvm_main with 8 args
+Using configuration file: /mnt/ext1/applications/mmiv/scummvm.ini
+EVT_FOREGROUND
+WARNING: No hardware input were defined, using defaults!
+Running Might and Magic: World of Xeen (DOS/English)
+dark.cc: df194483ecea6abc0511637d712ced7c, 11217676 bytes.
+xeen.cc: 0cffbab533d9afe140e69ec93096f43e, 13435646 bytes.
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+  (last message repeated 17 more times)
+touch 376,127
+touch 368,499
+touch 476,382
+touch 444,440
+touch 352,345
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+  (last message repeated 17 more times)
+panel 60s: 36 partial (avg 33% area, 10 ms/call), 18 full (2 ms/call)
+panel 60s: 34 partial (avg 7% area, 0 ms/call), 2 full (5 ms/call)
+safety save: saved to slot 99 (34 ms)
+panel 60s: 69 partial (avg 20% area, 1 ms/call), 3 full (3 ms/call)
+panel 60s: 74 partial (avg 16% area, 2 ms/call), 6 full (1 ms/call)
+safety save: saved to slot 99 (44 ms)
+WARNING: initWithU32String: Fribidi not available, will use input strings as fallback.!
+panel 60s: 74 partial (avg 16% area, 3 ms/call), 5 full (4 ms/call)
+keyboard: the game asks for text
+keyboard: sent 4 characters + Enter
+safety save: saved to slot 99 (36 ms)
+panel 60s: 75 partial (avg 26% area, 12 ms/call), 9 full (25 ms/call)
+keyboard: the game asks for text
+keyboard: sent 4 characters + Enter
+panel 60s: 88 partial (avg 17% area, 6 ms/call), 4 full (61 ms/call)
+safety save: saved to slot 99 (36 ms)
+panel 60s: 60 partial (avg 29% area, 1 ms/call), 5 full (3 ms/call)
+panel 60s: 67 partial (avg 21% area, 1 ms/call), 4 full (1 ms/call)
+safety save: saved to slot 99 (35 ms)
+panel 60s: 114 partial (avg 19% area, 1 ms/call), 6 full (5 ms/call)
+panel 60s: 115 partial (avg 19% area, 1 ms/call), 6 full (2 ms/call)
+panel 60s: 99 partial (avg 30% area, 3 ms/call), 8 full (2 ms/call)
+safety save: saved to slot 99 (35 ms)
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+  (last message repeated 17 more times)
+panel 60s: 64 partial (avg 22% area, 1 ms/call), 4 full (3 ms/call)
+panel 60s: 120 partial (avg 19% area, 1 ms/call), 6 full (1 ms/call)
+safety save: saved to slot 99 (34 ms)
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+  (last message repeated 17 more times)
+panel 60s: 118 partial (avg 16% area, 1 ms/call), 10 full (2 ms/call)
+keyboard: the game asks for text
+keyboard: sent 4 characters + Enter
+keyboard: the game asks for text
+keyboard: sent 5 characters + Enter
+panel 60s: 39 partial (avg 13% area, 2 ms/call), 11 full (45 ms/call)
+safety save: saved to slot 99 (34 ms)
+EVT_BACKGROUND
+suspend: game cannot be saved right now (combat, event or no-save area)
+panel 60s: 39 partial (avg 46% area, 5 ms/call), 8 full (1 ms/call)
+panel 60s: 38 partial (avg 88% area, 0 ms/call), 2 full (0 ms/call)
+EVT_EXIT
+panel 14s: 9 partial (avg 88% area, 0 ms/call), 1 full (0 ms/call)
+engine thread: scummvm_main returned 0

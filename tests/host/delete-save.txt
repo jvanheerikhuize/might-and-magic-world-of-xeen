@@ -1,0 +1,21 @@
+# Deleting a save from the ScummVM menu by touch: Load (list view), select
+# the save in row 1, Delete, confirm. Needs a slot-1 save (keyboard-save.txt).
+# Run: MMIV_SAVES_FROM=build/test-keyboard/saves MMIV_LAYOUT=landscape \
+#      tools/run-host-script.sh tests/host/delete-save.txt build/test-delete 0
+wait 5000
+menu
+wait 2000
+# Load (frame 480,133 + frame offset 32,79)
+tap 512 212
+wait 2000
+# Row "1." (frame 300,172)
+tap 332 251
+wait 1500
+# Delete (frame 288,502)
+tap 320 581
+wait 2000
+# Confirm: Delete (frame 365,322)
+tap 397 401
+wait 2000
+shot dl01-deleted
+quit
