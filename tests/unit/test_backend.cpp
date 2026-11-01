@@ -294,12 +294,13 @@ static void testRefreshAmbient() {
 }
 
 static void testContextMapping() {
-	// Palette: 0 parchment, 1 Xeen green text, 2 Xeen toggle blue, 3 black.
-	const uint8_t pal[] = {214, 154, 123, 104, 236, 80, 20, 36, 208, 0, 0, 0};
+	// Palette: 0 parchment, 1 Xeen green text, 2 Xeen toggle blue, 3 black,
+	// 4 credits orange, 5 credits marble teal.
+	const uint8_t pal[] = {214, 154, 123, 104, 236, 80, 20, 36, 208, 0, 0, 0, 252, 152, 44, 0, 76, 68};
 	PaletteLut lut;
-	lut.update(pal, 0, 4);
+	lut.update(pal, 0, 6);
 	CHECK(!lut.conflict(0) && lut.conflict(1) && !lut.conflict(2) && !lut.conflict(3));
-	CHECK(!lut.dark(0) && lut.dark(2) && lut.dark(3));
+	CHECK(lut.conflict(4) && !lut.conflict(5));
 	// 12x12: left half parchment, right half blue; a green 2x2 "letter" in each.
 	uint8_t img[12 * 12];
 	for (int y = 0; y < 12; y++)
@@ -317,6 +318,16 @@ static void testContextMapping() {
 	}
 	CHECK(onParchment / 16 < 100 && parchment / 16 > 200);  // dark text on light paper (Phase 0)
 	CHECK(onBlue / 16 > 200 && blue / 16 < 60);             // light text on the dark box
+	// Orange heading on mid-dark teal marble (credits, character creation).
+	uint8_t marble[12 * 12];
+	for (int i = 0; i < 12 * 12; i++)
+		marble[i] = (i % 3 == 0) ? 3 : 5;  // teal with black flecks
+	for (int x = 4; x < 8; x++)
+		marble[6 * 12 + x] = 4;
+	int orange = 0;
+	for (int cell = 0; cell < 16; cell++)
+		orange += mapPixel(lut, marble, 12, 12, 12, 5, 6, cell);
+	CHECK(orange / 16 > 200);  // light on the dark marble
 }
 
 int main() {

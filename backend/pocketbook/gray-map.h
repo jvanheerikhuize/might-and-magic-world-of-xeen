@@ -57,24 +57,26 @@ public:
 	// The same colour by lightness alone (no darkening of saturated colours).
 	uint8_t lookupPlain(uint8_t index, int cell) const { return _plain[index][cell]; }
 	// A colour the paper mapping darkens a lot (saturated text such as Xeen's
-	// green "on"): readable on parchment, invisible on a dark background.
+	// green "on" or orange headings): readable on parchment, lost on dark ground.
 	bool conflict(uint8_t index) const { return _conflict[index]; }
-	// A dark colour either way (e.g. Xeen's blue toggle boxes, black).
-	bool dark(uint8_t index) const { return _dark[index]; }
+	// Undithered gray 0..255 of a colour: paper mapping and plain lightness.
+	uint8_t value(uint8_t index) const { return _value[index]; }
+	uint8_t plainValue(uint8_t index) const { return _plainValue[index]; }
 
 private:
 	GrayMapParams _params;
 	uint8_t _lut[256][kBayerCells];
 	uint8_t _plain[256][kBayerCells];
+	uint8_t _value[256], _plainValue[256];
 	bool _conflict[256];
-	bool _dark[256];
 };
 
 // One game pixel -> panel byte, looking at its surroundings: a conflict
-// colour keeps its plain lightness when most of the non-conflict pixels in
-// the 5x5 around it are dark, so green-on-blue text stays light while green
-// text on the parchment stays dark (first landscape session: Xeen's Efx and
-// Music toggles were solid black). src: w x h palette indices, pitch bytes.
+// colour gets whichever of its two grays (paper or plain) stands out more
+// from the average gray of the other pixels in the 5x5 around it. Green text
+// on parchment stays dark; green on Xeen's blue toggle boxes and orange
+// headings on the dark marble of the credits and character creation become
+// light. src: w x h palette indices, pitch bytes.
 uint8_t mapPixel(const PaletteLut &lut, const uint8_t *src, int pitch, int w, int h, int x, int y, int cell);
 
 // RGB565 (ScummVM overlay) -> panel byte: luma with gamma 1.6, 16 levels,

@@ -75,7 +75,8 @@ PaletteLut::PaletteLut() {
 	memset(_lut, 0, sizeof(_lut));
 	memset(_plain, 0, sizeof(_plain));
 	memset(_conflict, 0, sizeof(_conflict));
-	memset(_dark, 1, sizeof(_dark));
+	memset(_value, 0, sizeof(_value));
+	memset(_plainValue, 0, sizeof(_plainValue));
 }
 
 void PaletteLut::update(const uint8_t *colors, unsigned start, unsigned num) {
@@ -90,7 +91,8 @@ void PaletteLut::update(const uint8_t *colors, unsigned start, unsigned num) {
 			_plain[start + i][cell] = quantize(plain, cell, _params.dither);
 		}
 		_conflict[start + i] = plain - v >= 0.35f;
-		_dark[start + i] = v <= 0.2f && plain <= 0.4f;
+		_value[start + i] = (uint8_t)lrintf(v * 255);
+		_plainValue[start + i] = (uint8_t)lrintf(plain * 255);
 	}
 }
 
@@ -98,7 +100,7 @@ uint8_t mapPixel(const PaletteLut &lut, const uint8_t *src, int pitch, int w, in
 	uint8_t c = src[y * pitch + x];
 	if (!lut.conflict(c))
 		return lut.lookup(c, cell);
-	int dark = 0, other = 0;
+	int sum = 0, other = 0;
 	for (int yy = y - 2; yy <= y + 2; yy++) {
 		if (yy < 0 || yy >= h)
 			continue;
@@ -107,10 +109,16 @@ uint8_t mapPixel(const PaletteLut &lut, const uint8_t *src, int pitch, int w, in
 			if (xx < 0 || xx >= w || lut.conflict(row[xx]))
 				continue;
 			other++;
-			dark += lut.dark(row[xx]);
+			sum += lut.value(row[xx]);
 		}
 	}
-	return other && dark * 2 > other ? lut.lookupPlain(c, cell) : lut.lookup(c, cell);
+	if (!other)
+		return lut.lookup(c, cell);
+	int ground = sum / other;
+	int paper = lut.value(c), plain = lut.plainValue(c);
+	int dPaper = paper > ground ? paper - ground : ground - paper;
+	int dPlain = plain > ground ? plain - ground : ground - plain;
+	return dPlain > dPaper ? lut.lookupPlain(c, cell) : lut.lookup(c, cell);
 }
 
 uint8_t gray565(uint16_t c) {
