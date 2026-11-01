@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
+#include <time.h>
 #include <unistd.h>
 
 #define FORBIDDEN_SYMBOL_ALLOW_ALL
@@ -59,9 +60,21 @@ public:
 		_appDir = argc > 0 ? argv[0] : ".";
 		size_t s = _appDir.rfind('/');
 		_appDir = s == std::string::npos ? "." : _appDir.substr(0, s);
-		_log = fopen((_appDir + "/scummvm.log").c_str(), "w");
-		for (int i = 0; i < argc; i++)
+		// Append across launches (suspend/resume spans two); start over past 256 KB.
+		std::string logPath = _appDir + "/scummvm.log";
+		_log = fopen(logPath.c_str(), "a");
+		if (_log && ftell(_log) > 256 * 1024) {
+			fclose(_log);
+			_log = fopen(logPath.c_str(), "w");
+		}
+		time_t now = time(nullptr);
+		char stamp[32];
+		strftime(stamp, sizeof stamp, "%Y-%m-%d %H:%M:%S", localtime(&now));
+		logf("==== mmiv start %s ====\n", stamp);
+		for (int i = 0; i < argc; i++) {
 			_args.push_back(argv[i]);
+			logf("arg %d: %s\n", i, argv[i]);
+		}
 		memset(_frame, 0xff, sizeof(_frame));
 	}
 
@@ -129,17 +142,36 @@ public:
 				Stretch(_frame, IMAGE_GRAY8, kFrameW, kFrameH, kFrameW, kFrameX, kFrameY, kFrameW, kFrameH, ROTATE0);
 		}
 		// The panel update itself (hundreds of ms) runs outside the lock.
-		if (op.kind == RefreshOp::kFull)
+		long t0 = nowMs();
+		if (op.kind == RefreshOp::kFull) {
 			FullUpdate();
-		else if (op.kind == RefreshOp::kPartial)
+			_stats.fulls++;
+			_stats.fullMs += nowMs() - t0;
+		} else if (op.kind == RefreshOp::kPartial) {
 			PartialUpdate(kFrameX + op.box.left, kFrameY + op.box.top, op.box.right - op.box.left,
 			              op.box.bottom - op.box.top);
+			_stats.partials++;
+			_stats.partialMs += nowMs() - t0;
+			_stats.partialArea += _policy.areaPct(op.box);
+		}
+		if (nowMs() - _stats.since >= 60000)
+			logStats();
 		if (done) {
 			shutdown();
 			CloseApp();
 			return;
 		}
 		SetHardTimer("mmiv_poll", pollThunk, kPollMs);
+	}
+
+	// Panel activity per minute, for tuning RefreshParams on the real panel.
+	void logStats() {
+		long secs = (nowMs() - _stats.since) / 1000;
+		logf("panel %lds: %d partial (avg %d%% area, %ld ms/call), %d full (%ld ms/call)\n", secs, _stats.partials,
+		     _stats.partials ? _stats.partialArea / _stats.partials : 0,
+		     _stats.partials ? _stats.partialMs / _stats.partials : 0L, _stats.fulls,
+		     _stats.fulls ? _stats.fullMs / _stats.fulls : 0L);
+		_stats = PanelStats();
 	}
 
 	void resumed() {
@@ -250,6 +282,11 @@ private:
 	ifont *_font = nullptr;
 	const KeypadButton *_held = nullptr;
 	char _text[64];
+	struct PanelStats {
+		long since = nowMs();
+		int partials = 0, fulls = 0, partialArea = 0;
+		long partialMs = 0, fullMs = 0;
+	} _stats;
 };
 
 InkViewPlatform *g_platform = nullptr;
@@ -321,6 +358,7 @@ int handler(int type, int p1, int p2) {
 		break;
 	case EVT_EXIT:
 		pf->logf("EVT_EXIT\n");
+		pf->logStats();
 		pf->shutdown();
 		break;
 	}
