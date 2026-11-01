@@ -52,7 +52,9 @@ private:
 	void handleSaves();
 	EinkGraphicsManager *eink();
 
-	enum { kRetryMs = 500, kSafetySaveMs = 5 * 60 * 1000 };
+	// Safety save every 2 minutes: a save takes ~35 ms on the reader, and the
+	// first landscape session lost ~3 minutes to a refused suspend save.
+	enum { kRetryMs = 500, kSafetySaveMs = 2 * 60 * 1000 };
 
 	Platform *_platform;
 	timeval _startTime;

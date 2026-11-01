@@ -1,5 +1,5 @@
 # Rolling safety save: with MMIV_SAFETY_SAVE_MS=4000 the backend must save to
-# slot 99 by itself while playing. The interval is 5 minutes on the reader.
+# slot 99 by itself while playing. The interval is 2 minutes on the reader.
 # Run: MMIV_SAFETY_SAVE_MS=4000 tools/run-host-script.sh tests/host/safety-save.txt build/test-safety 0
 wait 3000
 key up
