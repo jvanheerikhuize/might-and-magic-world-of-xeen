@@ -70,8 +70,10 @@ void OSystem_PocketBook::setFeatureState(Feature f, bool enable) {
 		ModularGraphicsBackend::setFeatureState(f, enable);
 		return;
 	}
-	if (enable != _textInput)
+	if (enable != _textInput) {
+		logMessage(LogMessageType::kInfo, enable ? "text prompt open\n" : "text prompt closed\n");
 		_platform->textInput(enable);
+	}
 	_textInput = enable;
 }
 
@@ -229,8 +231,14 @@ bool OSystem_PocketBook::pollEvent(Common::Event &event) {
 	    now - _lastKeyDown < kKeyPaceMs)
 		return false;
 	event = _pending.pop();
-	if (event.type == Common::EVENT_KEYDOWN)
+	if (event.type == Common::EVENT_KEYDOWN) {
+		// Typed names went missing on the reader: log what the game gets.
+		if (_textInput)
+			logMessage(LogMessageType::kInfo, Common::String::format("text key %d ascii %d to %s\n",
+			                                  event.kbd.keycode, event.kbd.ascii,
+			                                  eink()->isOverlayVisible() ? "menu" : "game").c_str());
 		_lastKeyDown = now;
+	}
 	return true;
 }
 
