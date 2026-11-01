@@ -26,6 +26,7 @@
 //   wait MS            let the engine run for MS milliseconds
 //   tap X Y            touch down+up at panel coordinates
 //   tapg X Y           touch at game coordinates (320x200; centre of the scaled pixel)
+//   drag X1 Y1 X2 Y2   touch down at X1,Y1, ten moves to X2,Y2, up (panel coordinates)
 //   key NAME           key down+up: up down left right esc enter space tab
 //                      backspace f1..f12 or a single character
 //   shot NAME          write OUT/NAME.pgm (the gray frame as last presented: 960x600
@@ -240,14 +241,33 @@ private:
 		_queued.push_back(u);
 	}
 
+	// Finger down at (x1,y1), ten moves to (x2,y2), up: as the reader reports a drag.
+	void drag(int x1, int y1, int x2, int y2) {
+		Input t;
+		t.type = Input::kTouchDown;
+		t.x = x1;
+		t.y = y1;
+		_queued.push_back(t);
+		t.type = Input::kTouchMove;
+		for (int i = 1; i <= 10; i++) {
+			t.x = x1 + (x2 - x1) * i / 10;
+			t.y = y1 + (y2 - y1) * i / 10;
+			_queued.push_back(t);
+		}
+		t.type = Input::kTouchUp;
+		_queued.push_back(t);
+	}
+
 	void run(const std::string &cmd, long now) {
 		char name[64] = {0};
-		int a = 0, b = 0;
+		int a = 0, b = 0, a2 = 0, b2 = 0;
 		if (sscanf(cmd.c_str(), "wait %d", &a) == 1) {
 			_due = now + a;
 		} else if (sscanf(cmd.c_str(), "tapg %d %d", &a, &b) == 2) {
 			const Layout &l = layout();
 			touch(l.frameX + a * l.scale + l.scale / 2, l.frameY + b * l.scale + l.scale / 2);
+		} else if (sscanf(cmd.c_str(), "drag %d %d %d %d", &a, &b, &a2, &b2) == 4) {
+			drag(a, b, a2, b2);
 		} else if (sscanf(cmd.c_str(), "tap %d %d", &a, &b) == 2) {
 			touch(a, b);
 		} else if (sscanf(cmd.c_str(), "key %63s", name) == 1) {

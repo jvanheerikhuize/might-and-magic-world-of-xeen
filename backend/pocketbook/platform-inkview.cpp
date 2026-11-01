@@ -172,6 +172,16 @@ public:
 			_policy.onInput(nowMs());
 	}
 
+	// The panel reports moves far faster than the engine reads them: only the
+	// latest position of a run of moves matters.
+	void pushMove(const Input &in) {
+		std::lock_guard<std::mutex> lk(_mu);
+		if (!_input.empty() && _input.back().type == Input::kTouchMove)
+			_input.back() = in;
+		else
+			_input.push_back(in);
+	}
+
 	void pushKey(int code, uint16_t ascii) {
 		Input in;
 		in.keycode = code;
@@ -549,6 +559,11 @@ int handler(int type, int p1, int p2) {
 			pf->keypadUp();
 		}
 		pf->push(in);  // the OSystem turns button taps into keys (keypad.cpp)
+		break;
+	case EVT_POINTERMOVE:
+		in.type = Input::kTouchMove;  // the OSystem decides whether it is a drag
+		fromPanel(layout(), p1, p2, in.x, in.y);
+		pf->pushMove(in);
 		break;
 	case EVT_KEYPRESS:
 	case EVT_KEYREPEAT:

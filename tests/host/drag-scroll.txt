@@ -1,0 +1,22 @@
+# Dragging in ScummVM's lists (2026-11-01 device test: swipes and thumb drags
+# only selected a row, because finger moves never reached ScummVM).
+# The ScummVM menu's save list, landscape (GUI at 1:1 in the 960x600 frame).
+# Run: MMIV_LAYOUT=landscape tools/run-host-script.sh tests/host/drag-scroll.txt build/test-drag 0
+wait 5000
+menu
+wait 2000
+# Save (frame 480,188 + frame offset 32,79)
+tap 512 267
+wait 2500
+shot dr01-top
+# Scrollbar thumb (frame 899,138) dragged down by 192 px
+drag 931 217 931 409
+wait 1500
+shot dr02-thumb
+# Finger swipe up on the list body: the list scrolls further down
+drag 400 450 400 250
+wait 1500
+shot dr03-swipe
+key esc
+wait 1000
+quit

@@ -61,12 +61,16 @@ private:
 	// Key presses reach the game at most every kKeyPaceMs: Xeen keeps only 5
 	// pending events and drops the rest, so a typed name (letters + Enter)
 	// arriving at once lost everything after the fifth key.
-	enum { kRetryMs = 500, kSafetySaveMs = 2 * 60 * 1000, kKeyPaceMs = 70, kClearChars = 40 };
+	// A finger that moves at most kDragSlop panel pixels between down and up
+	// is a tap: e-ink fingers wobble, and a stray move would turn a tap on a
+	// list row into a drag.
+	enum { kRetryMs = 500, kSafetySaveMs = 2 * 60 * 1000, kKeyPaceMs = 70, kClearChars = 40, kDragSlop = 12 };
 
 	Platform *_platform;
 	timeval _startTime;
 	Common::Queue<Common::Event> _pending;
-	Common::Point _mouse;
+	Common::Point _mouse, _touchStart;  // _touchStart: panel coordinates
+	bool _touching = false, _dragging = false;  // finger down inside the game frame
 	bool _suspended = false, _suspendSaved = false, _saving = false, _textInput = false;
 	uint32 _lastSaveTry = 0, _lastSafetySave = 0, _safetySaveMs = kSafetySaveMs, _lastKeyDown = 0;
 };
