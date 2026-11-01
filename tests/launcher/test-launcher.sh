@@ -31,6 +31,7 @@ expect "suspend save is newest: resume slot 99" "--save-slot=99 "
 touch -d '2026-11-01 12:00' "$t/mmiv/saves/worldofxeen.003"
 expect "newer manual save: resume slot 3" "--save-slot=3 "
 expect "game id and paths passed" "--path=$t/mmiv/game"
+expect "light GUI theme from the app folder" "--themepath=$t/mmiv --gui-theme=scummmodern"
 expect "default layout: landscape" "layout=landscape "
 expect "keypad launcher: portrait" "layout=portrait " mmiv-keypad.app
 expect "keypad launcher resumes too" "--save-slot=3 " mmiv-keypad.app

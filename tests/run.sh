@@ -54,3 +54,10 @@ MMIV_SAFETY_SAVE_MS=4000 tools/run-host-script.sh tests/host/safety-save.txt bui
 grep -q 'safety save: saved to slot 99' build/test-safety/run.log
 test -f build/test-safety/saves/worldofxeen.099
 echo "ok   $(grep -c 'safety save: saved' build/test-safety/run.log) safety save(s) in ~9 s at a 4 s interval"
+
+echo "== text input opens the keyboard"
+MMIV_LAYOUT=landscape tools/run-host-script.sh tests/host/keyboard-save.txt build/test-keyboard 0
+grep -q 'text input on' build/test-keyboard/present.log
+grep -q 'text input off' build/test-keyboard/present.log
+test -f build/test-keyboard/saves/worldofxeen.001
+echo "ok   keyboard requested for a text field; the typed name saved slot 1"

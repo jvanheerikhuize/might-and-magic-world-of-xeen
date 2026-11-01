@@ -1,6 +1,7 @@
 # Landscape, touch only: the same steps as smoke-from-save.txt, but by tapping
-# Xeen's own icons (engines/mm/xeen/interface.cpp:345-350) and the button
-# strip, never a key. Must match the same goldens (smoke-from-save.json).
+# Xeen's own icons (engines/mm/xeen/interface.cpp:345-350); the only key is
+# Escape, the reader's MENU button. Must match the same goldens
+# (smoke-from-save.json).
 # Run: MMIV_LAYOUT=landscape tools/run-host-script.sh tests/host/touch-only-landscape.txt build/test-touch 0
 wait 5000
 shot 01-loaded
@@ -16,8 +17,8 @@ shot 03-turn-left
 tapg 25 165
 wait 1500
 shot 04-portrait-tap
-# Strip button "Esc" (keypad.cpp landscape strip: x 16-150, y 616-750)
-tap 83 683
+# MENU button (short press): Escape
+key esc
 wait 1000
 shot 05-esc
 quit

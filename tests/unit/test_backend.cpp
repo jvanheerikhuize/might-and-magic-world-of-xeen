@@ -80,6 +80,7 @@ static void testGray565() {
 	CHECK(gray565(0x0000) == 0);
 	CHECK(gray565(0xffff) == 255);
 	CHECK(gray565(0x7bef) % 17 == 0);  // mid gray lands on a panel level
+	CHECK(gray565(0x7bef) <= 85);       // and is darkened: white labels on it stand out
 }
 
 static void testDiffBox() {
@@ -116,6 +117,7 @@ static Box box(int l, int t, int r, int b) {
 static void testRefreshSettle() {
 	RefreshPolicy p(640, 400);
 	CHECK(p.poll(0).kind == RefreshOp::kNone);
+	p.onInput(990);
 	p.onFrame(box(0, 0, 320, 200), 1000);           // 25%
 	CHECK(p.poll(1050).kind == RefreshOp::kNone);   // not settled yet
 	RefreshOp op = p.poll(1080);                     // 80 ms quiet
@@ -125,9 +127,10 @@ static void testRefreshSettle() {
 }
 
 static void testRefreshMaxWait() {
-	// A fade: new frames every 16 ms never settle; maxWait forces an update.
+	// A fade after a tap: new frames every 16 ms never settle; maxWait forces an update.
 	RefreshPolicy p(640, 400);
 	long t = 0;
+	p.onInput(0);
 	RefreshOp op;
 	for (; t < 1000 && op.kind == RefreshOp::kNone; t += 16) {
 		p.onFrame(box(0, 0, 640, 400), t);
@@ -155,17 +158,20 @@ static void testRefreshFullRules() {
 	RefreshPolicy p(640, 400, rp);
 	long t = 0;
 	// Turning: ~55% of the frame -> partial, no flash.
+	p.onInput(t);
 	p.onFrame(box(18, 22, 516, 332), t);
 	CHECK(p.poll(t += 100).kind == RefreshOp::kPartial);
 	// Screen switch: 91% -> full.
-	p.onFrame(box(0, 0, 640, 366), t += 1000);
+	p.onInput(t += 1000);
+	p.onFrame(box(0, 0, 640, 366), t);
 	CHECK(p.poll(t += 100).kind == RefreshOp::kFull);
 	CHECK(p.ghostPct() == 0);
 	// Ghost budget: partials add up until a full refresh clears them.
 	int partials = 0;
 	RefreshOp op;
 	do {
-		p.onFrame(box(0, 0, 640, 200), t += 1000);  // 50%
+		p.onInput(t += 1000);
+		p.onFrame(box(0, 0, 640, 200), t);  // 50%
 		op = p.poll(t += 100);
 		if (op.kind == RefreshOp::kPartial)
 			partials++;
@@ -246,13 +252,71 @@ static void testKeypad() {
 	CHECK(keypadTop() == 440);  // unchanged from Phase 3 (tests/host/keypad-and-suspend.txt)
 
 	setLayout(Layout::kLandscape);
-	checkButtons(7);
-	CHECK(byLabel("Fwd") == nullptr);  // movement is on Xeen's own arrows
-	CHECK(byLabel("Esc")->keycode == 27 && byLabel("Enter")->keycode == 13);
-	CHECK(byLabel("Wait")->keycode == 32 && byLabel("Yes")->ascii == 'y' && byLabel("No")->ascii == 'n');
-	CHECK(byLabel("Keyboard")->action == KeypadButton::kTextEntry);
-	CHECK(byLabel("ScummVM")->action == KeypadButton::kMainMenu);
-	CHECK(byLabel("Esc")->h >= 120);  // the whole strip height
+	checkButtons(0);  // nothing but the game
+}
+
+static void testRefreshAmbient() {
+	// Title screen / battle animation with nobody touching the reader: big
+	// changes every 50 ms. At most one refresh per ambientIntervalMs, all
+	// partial until the hard ghost backstop.
+	RefreshParams rp;
+	RefreshPolicy p(960, 600, rp);
+	int partials = 0, fulls = 0;
+	long firstFull = -1;
+	for (long t = 0; t < 60000; t += 50) {
+		p.onFrame(box(0, 0, 960, 600), t);  // 100%, would flash if responsive
+		RefreshOp op = p.poll(t);
+		if (op.kind == RefreshOp::kPartial)
+			partials++;
+		if (op.kind == RefreshOp::kFull) {
+			fulls++;
+			if (firstFull < 0)
+				firstFull = t;
+		}
+	}
+	CHECK(partials + fulls <= 60000 / rp.ambientIntervalMs + 1);
+	CHECK(fulls <= 60000 / rp.ambientIntervalMs / (rp.ghostHardPct / 100) + 1);  // backstop only
+	CHECK(firstFull >= rp.ambientIntervalMs * (rp.ghostHardPct / 100 - 1));
+	// A tap during the animation: the next change is shown quickly, and may flash.
+	RefreshPolicy q(960, 600, rp);
+	q.onFrame(box(0, 0, 960, 600), 0);
+	CHECK(q.poll(500).kind == RefreshOp::kPartial);   // ambient, first one is allowed
+	q.onInput(600);
+	q.onFrame(box(0, 0, 960, 600), 650);
+	RefreshOp op = q.poll(750);                        // settled, < ambientInterval later
+	CHECK(op.kind == RefreshOp::kFull);
+	// Small ambient change long after input: partial, throttled.
+	q.onFrame(box(10, 10, 20, 20), 10000);
+	CHECK(q.poll(10100).kind == RefreshOp::kPartial);
+	q.onFrame(box(10, 10, 20, 20), 10200);
+	CHECK(q.poll(10300).kind == RefreshOp::kNone);
+	CHECK(q.poll(10100 + rp.ambientIntervalMs).kind == RefreshOp::kPartial);
+}
+
+static void testContextMapping() {
+	// Palette: 0 parchment, 1 Xeen green text, 2 Xeen toggle blue, 3 black.
+	const uint8_t pal[] = {214, 154, 123, 104, 236, 80, 20, 36, 208, 0, 0, 0};
+	PaletteLut lut;
+	lut.update(pal, 0, 4);
+	CHECK(!lut.conflict(0) && lut.conflict(1) && !lut.conflict(2) && !lut.conflict(3));
+	CHECK(!lut.dark(0) && lut.dark(2) && lut.dark(3));
+	// 12x12: left half parchment, right half blue; a green 2x2 "letter" in each.
+	uint8_t img[12 * 12];
+	for (int y = 0; y < 12; y++)
+		for (int x = 0; x < 12; x++)
+			img[y * 12 + x] = x < 6 ? 0 : 2;
+	for (int y = 5; y < 7; y++)
+		for (int x = 2; x < 10; x += (x == 3 ? 5 : 1))
+			img[y * 12 + x] = 1;
+	int onParchment = 0, onBlue = 0, blue = 0, parchment = 0;
+	for (int cell = 0; cell < 16; cell++) {
+		onParchment += mapPixel(lut, img, 12, 12, 12, 2, 5, cell);
+		onBlue += mapPixel(lut, img, 12, 12, 12, 9, 6, cell);
+		blue += mapPixel(lut, img, 12, 12, 12, 10, 1, cell);
+		parchment += mapPixel(lut, img, 12, 12, 12, 0, 0, cell);
+	}
+	CHECK(onParchment / 16 < 100 && parchment / 16 > 200);  // dark text on light paper (Phase 0)
+	CHECK(onBlue / 16 > 200 && blue / 16 < 60);             // light text on the dark box
 }
 
 int main() {
@@ -262,11 +326,13 @@ int main() {
 	testQuantizeAndDither();
 	testLut();
 	testGray565();
+	testContextMapping();
 	testDiffBox();
 	testRefreshSettle();
 	testRefreshMaxWait();
 	testRefreshSmallThrottle();
 	testRefreshFullRules();
+	testRefreshAmbient();
 	printf("%d passed, %d failed\n", g_pass, g_fail);
 	return g_fail ? 1 : 0;
 }

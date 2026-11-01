@@ -1,0 +1,18 @@
+# Text input: a text field must switch the virtual keyboard feature on (the
+# reader then opens its keyboard), and the typed answer + Enter must reach
+# it. Uses the ScummVM menu's save-name field; Xeen's own prompts (mirror,
+# riddles, names) use the same switch via patches/0002.
+# Run: tools/run-host-script.sh tests/host/keyboard-save.txt build/test-keyboard 0
+wait 5000
+# MENU held: ScummVM menu
+menu
+wait 2000
+# Save (landscape frame 480,254 + frame offset 32,79)
+tap 512 333
+wait 2000
+# New Save tile
+tap 190 234
+wait 2000
+answer Test Save
+wait 2000
+quit
