@@ -105,9 +105,9 @@ and the refresh policy treats that as a large partial update.
    hard to read. Everything else read well: character sheet, Quick
    Reference, info, dialogs, keypad. Candidates for the planned contrast
    setting.
-9. **Question: page keys in landscape.** Next = forward / list up and
-   Prev = back / list down, as `mapKey()` intends for landscape. Confirm this
-   matches the physical buttons as you hold the reader; if not, swap.
+9. **Not a bug: page keys in landscape.** Next = forward / list up and
+   Prev = back / list down, as `mapKey()` intends for landscape. Confirmed
+   by the player to match the physical buttons as the reader is held.
 10. **Not a bug: Back from Credits and Other Options** leaves the bare title
     art; one more tap brings the menu back. That is Xeen's own behaviour.
 
