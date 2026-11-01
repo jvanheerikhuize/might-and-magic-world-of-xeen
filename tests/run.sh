@@ -3,7 +3,9 @@
 #   1. unit tests of the backend's pure parts (gray mapping, refresh policy, keypad)
 #   2. host-stub golden tests: scripted play from save slot 0, shot signatures
 #      compared with tests/host/golden/ (needs ~/games/xeen with a slot-0 save
-#      made in Vertigo; record new goldens with RECORD=1)
+#      made in Vertigo; record new goldens with RECORD=1). The signatures are
+#      size-independent, so landscape (3x) runs check against the same goldens
+#      as portrait (2x), and touch-only play against the keyboard run.
 #   3. suspend/resume: the keypad test suspends (save to slot 99), then a new
 #      run loads slot 99
 # Build the host stub first: tools/build-host.sh pocketbook
@@ -23,24 +25,26 @@ if [[ ! -f $HOME/games/xeen/saves/worldofxeen.000 ]]; then
 	exit 0
 fi
 
-golden() {  # script-name
-	local name=$1 out=build/test-$1
-	echo "== host golden: $name"
-	tools/run-host-script.sh "tests/host/$name.txt" "$out" 0
-	if [[ ${RECORD:-0} == 1 ]]; then
-		python3 -I tools/check-golden.py "$out" "tests/host/golden/$name.json" --record
+golden() {  # layout script-name [golden-name]
+	local layout=$1 name=$2 ref=${3:-$2} out=build/test-$2-$1
+	echo "== host golden: $name ($layout)"
+	MMIV_LAYOUT=$layout tools/run-host-script.sh "tests/host/$name.txt" "$out" 0
+	if [[ ${RECORD:-0} == 1 && $name == "$ref" && $layout == portrait ]]; then
+		python3 -I tools/check-golden.py "$out" "tests/host/golden/$ref.json" --record
 	else
-		python3 -I tools/check-golden.py "$out" "tests/host/golden/$name.json"
+		python3 -I tools/check-golden.py "$out" "tests/host/golden/$ref.json"
 	fi
 }
 
-golden smoke-from-save
-golden keypad-and-suspend
+golden portrait smoke-from-save
+golden landscape smoke-from-save
+golden landscape touch-only-landscape smoke-from-save
+golden portrait keypad-and-suspend
 
 echo "== suspend save + resume"
-grep -q 'suspend: saved to slot 99' build/test-keypad-and-suspend/run.log
-test -f build/test-keypad-and-suspend/saves/worldofxeen.099
-MMIV_SAVES_FROM=build/test-keypad-and-suspend/saves \
+grep -q 'suspend: saved to slot 99' build/test-keypad-and-suspend-portrait/run.log
+test -f build/test-keypad-and-suspend-portrait/saves/worldofxeen.099
+MMIV_SAVES_FROM=build/test-keypad-and-suspend-portrait/saves \
 	tools/run-host-script.sh tests/host/resume-99.txt build/test-resume 99
 test -f build/test-resume/r01-resumed.pgm
 echo "ok   slot 99 written on suspend and loads again"

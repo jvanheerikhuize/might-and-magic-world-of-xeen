@@ -3,8 +3,9 @@
 
     python3 -I tools/check-golden.py OUTDIR GOLDEN.json [--record]
 
-A signature is the mean gray of each 16x16 block of the 640x400 frame
-(40x25 numbers). It catches wrong screens, wrong mapping, broken input or a
+A signature is the mean gray of each block of a 40x25 grid over the frame
+(16x16 px blocks at 640x400, 24x24 at 960x600), so the same goldens check
+both layouts. It catches wrong screens, wrong mapping, broken input or a
 blank frame, tolerates small animated sprites, and keeps game imagery out of
 the repository (only these coarse numbers are committed).
 
@@ -15,7 +16,7 @@ import json
 import os
 import sys
 
-BLOCK = 16
+GRID_W = 40
 TOL = 12        # gray levels (one panel level is 17)
 MIN_MATCH = 0.97
 
@@ -32,14 +33,15 @@ def read_pgm(path):
 
 def signature(path):
     w, h, px = read_pgm(path)
+    block = w // GRID_W
     sig = []
-    for by in range(0, h, BLOCK):
-        for bx in range(0, w, BLOCK):
+    for by in range(0, h, block):
+        for bx in range(0, w, block):
             total = 0
-            for y in range(by, by + BLOCK):
-                row = px[y * w + bx : y * w + bx + BLOCK]
+            for y in range(by, by + block):
+                row = px[y * w + bx : y * w + bx + block]
                 total += sum(row)
-            sig.append(round(total / (BLOCK * BLOCK)))
+            sig.append(round(total / (block * block)))
     return sig
 
 
@@ -56,7 +58,7 @@ def main():
     sigs = {s: signature(os.path.join(out, s + ".pgm")) for s in shots}
     if record:
         with open(golden, "w") as f:
-            json.dump({"block": BLOCK, "shots": sigs}, f, separators=(",", ":"))
+            json.dump({"grid": [GRID_W, 25], "shots": sigs}, f, separators=(",", ":"))
             f.write("\n")
         print("recorded", len(sigs), "shots to", golden)
         return 0
