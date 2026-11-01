@@ -4,9 +4,9 @@
 # resuming the most recently written save (the backend saves to slot 99 when
 # the app goes to the background, PLAN.md Phase 3).
 #
-# Layout (backend/pocketbook/layout.h): MMIV_LAYOUT if set (mmiv-keypad.app
-# sets portrait), else the first word of mmiv/layout if that file exists,
-# else landscape full screen.
+# Layout (backend/pocketbook/layout.h): MMIV_LAYOUT if set, else the first
+# word of mmiv/layout if that file exists (landscape, landscape-flip, or
+# portrait for the touch keypad), else landscape full screen.
 DIR="$(dirname "$0")/mmiv"
 BIN="$DIR/scummvm"
 chmod +x "$BIN" 2>/dev/null   # FAT storage does not keep execute bits

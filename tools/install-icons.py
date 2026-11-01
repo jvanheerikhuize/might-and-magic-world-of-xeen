@@ -9,14 +9,17 @@ MobileRead wiki "Pocketbook Configuration"):
 
   applications/icons/NAME.bmp, NAME_f.bmp      copied from packaging/icons/
   system/config/desktop/view.json              adds "U_NAME" app entries (path,
-                                               title, icon, focused_icon; paths
-                                               relative to the storage root, as
-                                               the file's own _comment shows)
-                                               and lists them in the "@Games"
+                                               title, icon, focused_icon) and
+                                               lists them in the "@Games"
                                                group (else a group with other
                                                U_ apps, else the first)
 
-Only our own keys are added; nothing else is changed. view.json is
+The app path must be absolute (/mnt/ext1/applications/NAME.app): with a path
+relative to the storage root the reader showed the icon but tapping it did
+nothing (PB628, firmware U628.6.9). Icons as object paths do work.
+
+Only our own keys are added; nothing else is changed. Launchers we no longer
+ship (OBSOLETE) are removed: view.json entry, icons and .app file. view.json is
 backed up once to view.json.mmiv-backup, must parse as JSON before and after,
 and is left alone if anything looks unexpected. Run it again any time: it is
 idempotent. The new icons appear after the reader restarts.
@@ -28,8 +31,10 @@ import sys
 
 APPS = [
     ("mmiv", "Might and Magic IV"),
-    ("mmiv-keypad", "Might and Magic IV (keypad)"),
 ]
+# Launchers we used to install: removed from view.json and the reader.
+OBSOLETE = ["mmiv-keypad"]
+DEVICE_ROOT = "/mnt/ext1"
 
 
 def fail(msg):
@@ -56,7 +61,7 @@ def update_view(path, dry):
     for name, title in APPS:
         key = "U_" + name
         entry = {
-            "path": f"applications/{name}.app",
+            "path": f"{DEVICE_ROOT}/applications/{name}.app",
             "title": title,
             "icon": {"path": f"applications/icons/{name}.bmp"},
             "focused_icon": {"path": f"applications/icons/{name}_f.bmp"},
@@ -67,13 +72,22 @@ def update_view(path, dry):
         if not any(key in g.get("apps", []) for g in groups):
             home.setdefault("apps", []).append(key)
             changed = True
+    for name in OBSOLETE:
+        key = "U_" + name
+        if key in table:
+            del table[key]
+            changed = True
+        for g in groups:
+            if key in g.get("apps", []):
+                g["apps"].remove(key)
+                changed = True
     if not changed:
         print("view.json: already up to date")
         return
     out = json.dumps(view, indent=4, ensure_ascii=False)
     json.loads(out)
     if dry:
-        print(f"view.json: would add", ", ".join("U_" + n for n, _ in APPS), "to group", home.get("title"))
+        print("view.json: would update", ", ".join("U_" + n for n, _ in APPS), "in group", home.get("title"))
         return
     backup = path + ".mmiv-backup"
     if not os.path.exists(backup):
@@ -82,7 +96,7 @@ def update_view(path, dry):
     with open(tmp, "w", encoding="utf-8") as f:
         f.write(out)
     os.replace(tmp, path)
-    print(f"view.json: added our apps to {home.get('title')} (backup: {os.path.basename(backup)})")
+    print(f"view.json: updated our apps in {home.get('title')} (backup: {os.path.basename(backup)})")
 
 
 def main():
@@ -105,6 +119,13 @@ def main():
             if not dry:
                 shutil.copyfile(os.path.join(src, f), os.path.join(icons, f))
     print("icons:", "would copy" if dry else "copied", 2 * len(APPS), "files to applications/icons/")
+    for name in OBSOLETE:
+        for f in (f"icons/{name}.bmp", f"icons/{name}_f.bmp", f"{name}.app"):
+            p = os.path.join(root, "applications", f)
+            if os.path.isfile(p):
+                print("removing obsolete", "applications/" + f)
+                if not dry:
+                    os.remove(p)
     update_view(view, dry)
     return 0
 

@@ -129,7 +129,7 @@ def draw_icon(focused, keypad):
 def main():
     out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), "..", "packaging", "icons")
     os.makedirs(out, exist_ok=True)
-    for name, keypad in (("mmiv", False), ("mmiv-keypad", True)):
+    for name, keypad in (("mmiv", False),):
         for focused in (False, True):
             gray, pal = draw_icon(focused, keypad)
             base = os.path.join(out, name + ("_f" if focused else ""))
