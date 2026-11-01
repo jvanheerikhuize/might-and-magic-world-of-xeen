@@ -70,7 +70,13 @@ Layouts live in data (`keypad-layouts.h`) so they can be adjusted without touchi
 ## 5. Phases
 
 ### Phase 0 — Prove it on the PC (1–2 days)
-- [ ] Get the game data (GOG) and keep it outside the repo (`~/games/xeen`).
+- [x] Get the game data (GOG) and keep it outside the repo (`~/games/xeen`). Done 2026-11-01 with `tools/prepare-gog-data.sh`. Findings:
+  - The installer is `setup_might_and_magic_4-5_-_world_of_xeen_1.0_(28066).exe` (Inno Setup 5.6.2), unpacked with `innoextract`.
+  - The game data is `__support/save/XEEN.CC` and `__support/save/DARK.CC`, plus `INTRO.CC` (intro movie, optional).
+  - ScummVM detection (5000-byte MD5 + size) matches the reference **English World of Xeen** entry, which ScummVM treats as stable: `xeen.cc 0cffbab5… 13435646`, `dark.cc df194483… 11217676`. `xeen.cc` alone is detected as `cloudsofxeen`.
+  - `GAME1.GOG`/`GAME2.GOG` + `.INS` are raw CD images (MODE1/2352) with cue sheets; their CD-audio music is in `MUSIC/xeenNN.ogg`. They aren't needed, because the device build has no audio.
+  - ScummVM also needs its own engine data file **`mm.dat`** (`dists/engine-data/`), which must go in the device bundle.
+  - Data folders: `~/games/xeen/scummvm/world-of-xeen` (recommended; Clouds is playable inside it) and `~/games/xeen/scummvm/clouds-of-xeen`.
 - [ ] Add the `scummvm` submodule, pinned to a release tag; build stock ScummVM on Ubuntu with only the `mm` engine; play into the first town.
 - [ ] Grayscale preview: run with a debug filter (or capture screenshots and convert them) at 16 levels, with and without dither. **Gate: the UI and automap must stay readable.** If not, tune the contrast curve before continuing.
 - [ ] Measure peak RSS while playing; it must fit well under 512 MB (expected: tens of MB).
