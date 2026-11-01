@@ -139,6 +139,7 @@ public:
 	void textInput(bool on) override {
 		std::lock_guard<std::mutex> lk(_mu);
 		_wantKeyboard = on;
+		_wantKeyboardAt = nowMs();
 	}
 
 	// ---- main (InkView) thread ----
@@ -196,7 +197,7 @@ public:
 		bool done, keyboard;
 		{
 			std::lock_guard<std::mutex> lk(_mu);
-			keyboard = _wantKeyboard && !_keyboardOpen;
+			keyboard = _wantKeyboard && !_keyboardOpen && nowMs() - _wantKeyboardAt >= kKeyboardDelayMs;
 			op = _policy.poll(nowMs());
 			done = _engineDone;
 			if (op.kind != RefreshOp::kNone)
@@ -325,6 +326,11 @@ public:
 	// Typed text goes to the game as key presses (names, riddles, passwords).
 	void keyboardDone(char *s) {
 		if (s) {
+			// Prompts may come with text already in the field (ScummVM's save
+			// name is pre-filled): typed text replaces it, an empty answer keeps it.
+			if (_keyboardAuto && *s)
+				for (int i = 0; i < kClearChars; i++)
+					pushKey(Common::KEYCODE_BACKSPACE, 8);
 			for (const char *p = s; *p; p++) {
 				char c = *p;
 				pushKey((c >= 'A' && c <= 'Z') ? c - 'A' + 'a' : (unsigned char)c, (unsigned char)c);
@@ -385,7 +391,10 @@ private:
 	bool _wantKeyboard = false, _keyboardOpen = false, _keyboardAuto = false;
 	long _menuDownAt = 0;
 	bool _menuDone = true;
-	enum { kLongPressMs = 700 };
+	long _wantKeyboardAt = 0;
+	// The keyboard covers the screen: open it a moment after the prompt so
+	// the question (and the field's current text) can be read first.
+	enum { kLongPressMs = 700, kKeyboardDelayMs = 1200, kClearChars = 40 };
 	bool _engineDone = false;
 	std::thread _engine;
 	ifont *_font = nullptr;
@@ -409,13 +418,20 @@ void InkViewPlatform::keyboardThunk(char *s) {
 }
 
 // Hardware buttons: PREV/NEXT step forward/back (page-turn buttons are the
-// quickest way to walk), BACK is Escape, MENU is Escape on a short press and
+// quickest way to walk); in landscape (orientation 1) the buttons sit on the
+// right with PREV pointing down, so there PREV steps back and NEXT forward
+// (first landscape session). BACK is Escape, MENU is Escape on a short press and
 // the ScummVM menu when held (InkViewPlatform::menuKey). Everything else is on the
 // touch buttons (keypad.cpp) or, in landscape, on the game's own icons.
 bool mapKey(int ivKey, int &code, uint16_t &ascii) {
 	switch (ivKey) {
-	case IV_KEY_PREV: code = Common::KEYCODE_UP; ascii = 0; return true;
-	case IV_KEY_NEXT: code = Common::KEYCODE_DOWN; ascii = 0; return true;
+	case IV_KEY_PREV:
+	case IV_KEY_NEXT: {
+		bool forward = (ivKey == IV_KEY_PREV) != (layout().mode == Layout::kLandscape);
+		code = forward ? Common::KEYCODE_UP : Common::KEYCODE_DOWN;
+		ascii = 0;
+		return true;
+	}
 	case IV_KEY_BACK: code = Common::KEYCODE_ESCAPE; ascii = 27; return true;
 	default: return false;
 	}
