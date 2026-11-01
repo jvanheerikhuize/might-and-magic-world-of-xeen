@@ -1,0 +1,156 @@
+      0 ---- mmIV smoke test start, built Nov  1 2026 12:09:14, gcc 6.3.0
+    105 EVT_INIT screen 758x1024 orientation 0
+    107 runtime PASS static constructor
+    107 runtime PASS exceptions
+    107 runtime PASS RTTI dynamic_cast
+    109 runtime PASS containers + to_string
+    121 runtime PASS threads + atomics + mutex
+    141 runtime PASS chrono + sleep_for
+    150 worker thread started
+    155 bench blit 640x400: 7332 us
+   1328 bench Partial game rect: avg 225 ms, worst 569 ms (5 runs)
+   1771 bench blit 640x400: 12966 us
+   3542 bench Dynamic game rect: avg 426 ms, worst 427 ms (5 runs)
+   3986 bench blit 640x400: 12864 us
+   4877 bench Full    game rect: avg 428 ms, worst 430 ms (3 runs)
+   5471 bench Partial full screen: 594 ms
+   6065 ready
+   6094 EVT_SHOW
+   6094 EVT_FOREGROUND
+  14314 touch down 485,315
+  14344 frame 1 via worker, Partial: tap-to-panel 30 ms
+  14445 touch up   485,315
+  15655 touch down 501,149
+  15685 frame 2 via worker, Partial: tap-to-panel 29 ms
+  15766 touch up   501,148
+  16614 touch down 498,238
+  16644 frame 3 via worker, Partial: tap-to-panel 30 ms
+  16725 touch up   498,238
+  17310 touch down 510,239
+  17340 frame 4 via worker, Partial: tap-to-panel 30 ms
+  17441 touch up   510,239
+  18208 touch down 508,235
+  18238 frame 5 via worker, Partial: tap-to-panel 29 ms
+  18278 touch up   508,235
+  18878 touch down 498,252
+  18907 frame 6 via worker, Partial: tap-to-panel 28 ms
+  18988 touch up   498,252
+  19937 touch down 522,280
+  19967 frame 7 via worker, Partial: tap-to-panel 29 ms
+  20052 touch up   522,280
+  20778 touch down 530,322
+  20808 frame 8 via worker, Partial: tap-to-panel 29 ms
+  20869 touch up   530,322
+  21495 touch down 479,319
+  21525 frame 9 via worker, Partial: tap-to-panel 29 ms
+  21585 touch up   479,319
+  22513 touch down 512,316
+  22543 frame 10 via worker, Partial: tap-to-panel 29 ms
+  22624 touch up   512,316
+  23128 touch down 500,320
+  23158 frame 11 via worker, Partial: tap-to-panel 29 ms
+  23219 touch up   500,320
+  23766 touch down 494,291
+  23796 frame 12 via worker, Partial: tap-to-panel 29 ms
+  23857 touch up   494,291
+  24644 touch down 477,297
+  24674 frame 13 via worker, Partial: tap-to-panel 29 ms
+  24748 touch up   477,297
+  35629 key press 25
+  35633 mode -> Dynamic
+  35774 key release 25
+  38378 touch down 465,331
+  38408 frame 14 via worker, Dynamic: tap-to-panel 29 ms
+  38470 touch up   465,331
+  39055 touch down 526,333
+  39085 frame 15 via worker, Dynamic: tap-to-panel 30 ms
+  39106 touch up   526,333
+  39732 touch down 484,319
+  39762 frame 16 via worker, Dynamic: tap-to-panel 29 ms
+  39854 touch up   484,319
+  40479 touch down 554,316
+  40509 frame 17 via worker, Dynamic: tap-to-panel 29 ms
+  40594 touch up   554,316
+  42470 touch down 627,320
+  42500 frame 18 via worker, Dynamic: tap-to-panel 29 ms
+  42560 touch up   627,320
+  43431 touch down 622,331
+  43461 frame 19 via worker, Dynamic: tap-to-panel 29 ms
+  43542 touch up   622,331
+  44227 touch down 617,333
+  44257 frame 20 via worker, Dynamic: tap-to-panel 29 ms
+  44318 touch up   617,333
+  44843 touch down 616,335
+  44873 frame 21 via worker, Dynamic: tap-to-panel 29 ms
+  44913 touch up   616,335
+  45438 touch down 624,334
+  45468 frame 22 via worker, Dynamic: tap-to-panel 29 ms
+  45549 touch up   624,334
+  46013 touch down 616,335
+  46043 frame 23 via worker, Dynamic: tap-to-panel 29 ms
+  46084 touch up   616,335
+  46608 touch down 594,343
+  46638 frame 24 via worker, Dynamic: tap-to-panel 29 ms
+  46679 touch up   594,343
+  47002 touch down 598,339
+  47032 frame 25 via worker, Dynamic: tap-to-panel 29 ms
+  47092 touch up   598,339
+  48726 key press 25
+  48731 mode -> Full
+  48892 key release 25
+  50083 touch down 598,281
+  50113 frame 26 via worker, Full: tap-to-panel 30 ms
+  50174 touch up   598,281
+  50800 touch down 605,304
+  50831 frame 27 via worker, Full: tap-to-panel 30 ms
+  50911 touch up   605,304
+  51698 touch down 574,335
+  51729 frame 28 via worker, Full: tap-to-panel 30 ms
+  51790 touch up   574,335
+  52375 touch down 611,322
+  52406 frame 29 via worker, Full: tap-to-panel 30 ms
+  52547 touch up   611,322
+  53456 touch down 624,325
+  53486 frame 30 via worker, Full: tap-to-panel 29 ms
+  53506 touch up   624,325
+  54111 touch down 619,328
+  54142 frame 31 via worker, Full: tap-to-panel 30 ms
+  54182 touch up   619,328
+  54788 touch down 614,331
+  54818 frame 32 via worker, Full: tap-to-panel 30 ms
+  54879 touch up   614,331
+  55465 touch down 606,335
+  55496 frame 33 via worker, Full: tap-to-panel 30 ms
+  55576 touch up   606,335
+  56182 touch down 593,335
+  56213 frame 34 via worker, Full: tap-to-panel 30 ms
+  56314 touch up   593,335
+  56899 touch down 586,354
+  56930 frame 35 via worker, Full: tap-to-panel 30 ms
+  57011 touch up   586,354
+  58201 key press 25
+  58207 mode -> Partial
+  58328 key release 25
+  59498 touch down 622,303
+  59528 frame 36 via worker, Partial: tap-to-panel 29 ms
+  59589 touch up   622,303
+  60093 touch down 618,310
+  60123 frame 37 via worker, Partial: tap-to-panel 30 ms
+  60204 touch up   618,310
+  61072 key press 25
+  61077 mode -> Dynamic
+  61238 key release 25
+  62389 touch down 584,354
+  62419 frame 38 via worker, Dynamic: tap-to-panel 29 ms
+  62479 touch up   584,354
+  62943 touch down 600,338
+  62973 frame 39 via worker, Dynamic: tap-to-panel 29 ms
+  63054 touch up   600,338
+  63336 touch down 614,326
+  63366 frame 40 via worker, Dynamic: tap-to-panel 29 ms
+  63407 touch up   614,326
+  64073 key press 25
+  64077 mode -> Full
+  64218 key release 25
+  75776 EVT_BACKGROUND
+  85770 EVT_EXIT

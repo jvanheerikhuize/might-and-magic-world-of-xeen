@@ -49,6 +49,7 @@ mmIV/
 3. **Optional ordered dither** (4×4 Bayer) to 16 levels. The Carta panel shows 16 grays; the first-person view gains the most from dithering. Toggle it in settings.
 4. **Integer 2× scale** into the InkView framebuffer at a fixed origin (portrait), with nearest-neighbour scaling for sharp pixels.
 5. **Refresh policy**, driven by dirty rectangles from `copyRectToScreen`:
+   - measured on the device (Phase 1): `PartialUpdate` takes about 225 ms on the game area, while `DynamicUpdate` and `FullUpdate` take about 430 ms. So Partial is the default and Dynamic isn't used;
    - small changes (text, stats, cursor) → `PartialUpdate` on the merged dirty box;
    - first-person view changes (turning, stepping) → `PartialUpdate` on the view window;
    - every N partial updates, or on a screen change (combat start, menus) → `FullUpdate()` to clear ghosting. Start with N = 8 and make it configurable;
@@ -96,8 +97,18 @@ Layouts live in data (`keypad-layouts.h`) so they can be adjusted without touchi
 **Phase 0 complete (2026-11-01).**
 
 ### Phase 1 — Toolchain smoke test (≤1 day)
-- [ ] Cross-compile a C++ hello-world with InkView using the `SDK-B288` toolchain and run it on the device. This checks that C++ (libstdc++ static, `-std=c++11`/`c++14`) works, since inkquest only proved C.
-- [ ] Find which C++ standard the pinned ScummVM tag needs and confirm GCC 6 can build it. If it can't, pin an older ScummVM tag that still has the Xeen engine, or build a newer GCC that targets the same soft-float glibc 2.23 sysroot.
+- [x] Cross-compile a C++ test program with InkView using the `SDK-B288` toolchain (GCC 6.3.0) and run it on the device. This is `device/smoke/` (`make -C device/smoke install`). Ran 2026-11-01; log in `applications/mmiv-smoke/smoke.log`.
+  - **Binary:** `-std=c++11 -static-libstdc++ -static-libgcc -pthread -linkview` with the vendor softfp flags. It uses the soft-float loader `/lib/ld-linux.so.3`, and its only shared libraries are libinkview, libm, libpthread and libc. Its highest glibc symbol is 2.17 (the device has 2.23). Size 704 KB, stripped.
+  - **Runtime on the device: all PASS.** Static constructors, exceptions, RTTI, containers, 4 threads with atomics and a mutex, chrono and `sleep_for`.
+  - **Worker-thread handoff works.** 40/40 frames went from the worker thread through a `SetHardTimer` poll (20 ms) on the main thread to the screen. This is the ScummVM pattern.
+  - **Screen:** `ScreenWidth/Height` = 758×1024, orientation 0 (portrait) by default. Touch coordinates are in the same space, so no rotation is needed.
+  - **Drawing:** 2× nearest-neighbour scaling in C plus a 1:1 `Stretch(IMAGE_GRAY8)` takes 7–13 ms per 640×400 frame.
+  - **Refresh on the 640×400 game area,** including `WaitForUpdateComplete`: **Partial avg 225 ms** (worst 569), Dynamic avg 426 ms, Full avg 428 ms; Partial on the full screen took 594 ms. Dynamic gives no speed-up on this firmware, so it's dropped.
+  - Tap → frame handed to the panel controller: **29–30 ms** in every mode. During interactive use `WaitForUpdateComplete` returns before the panel settles, so the real tap-to-visible time is about **0.25 s** with Partial.
+  - **Lifecycle:** Home sends `EVT_BACKGROUND`, then the firmware sends `EVT_EXIT` about 10 s later without the app's own quit path running. **The backend must autosave and stop the engine thread on `EVT_BACKGROUND`/`EVT_EXIT`.**
+- [x] Find which C++ standard the pinned ScummVM tag needs and confirm GCC 6 can build it. `v2026.4.0` needs **C++11** and rejects only GCC ≤ 4.7 (see Phase 0). Confirmed on the device that GCC 6.3 C++11 binaries run. Actually cross-building ScummVM is Phase 2's first task.
+
+**Phase 1 complete (2026-11-01).**
 
 ### Phase 2 — Backend on the host stub (3–5 days)
 - [ ] `backends/platform/pocketbook` with `OSystem` (timer, mutexes, filesystem via the POSIX FS node, saves), plus a graphics manager and event source.
@@ -108,7 +119,7 @@ Layouts live in data (`keypad-layouts.h`) so they can be adjusted without touchi
 - [ ] InkView display: the game is visible, with the refresh policy from §3.
 - [ ] Touch keypad + hardware buttons (§4); worker-thread engine with an event queue.
 - [ ] Save/load to `/mnt/ext1/applications/scummvm-xeen/saves`; config in the same folder.
-- [ ] Handle the app losing focus and sleep/wake: pause the engine on `EVT_HIDE`/`EVT_FOREGROUND` and redraw fully on return.
+- [ ] Handle the app losing focus and sleep/wake. Autosave and pause the engine on `EVT_BACKGROUND`, because the firmware sends `EVT_EXIT` about 10 s after Home (Phase 1). Join the engine thread on `EVT_EXIT`, and redraw fully on `EVT_FOREGROUND`.
 - [ ] Logging to a file on the device for debugging (pull it over USB).
 
 ### Phase 4 — Package & polish (≤1 week)
