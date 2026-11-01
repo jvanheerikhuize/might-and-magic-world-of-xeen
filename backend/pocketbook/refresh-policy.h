@@ -17,13 +17,18 @@
 // Why (Phase 2 host-stub run, tests/host/smoke-from-save.txt):
 //   - loading a save fades the palette in: ~30 near-full frames in a row;
 //   - idle sprites change a few pixels every frame, forever.
-// Refreshing on every frame would flash the panel continuously. So:
-//   - settle: wait until the frame has been unchanged for settleMs, but never
-//     longer than maxWaitMs after the first pending change;
+// And from the first landscape session on the reader: the title screen,
+// battles and conversations animate continuously, and refreshing them as
+// fast as they change (with a full flash for every big change) flickers
+// heavily. So:
+//   - responsive: within inputWindowMs of a tap or key, wait until the frame
+//     has been unchanged for settleMs, but never longer than maxWaitMs;
+//   - ambient (animation nobody asked for): at most every ambientIntervalMs;
 //   - small changes (< smallAreaPct) refresh at most every smallIntervalMs;
-//   - ghosting is cleared with a full refresh once the partial updates since
-//     the last full one add up to ghostBudgetPct of the frame, or straight
-//     away for a change of fullAreaPct or more.
+//   - full refreshes (the flash) only right after input: a screen switch
+//     (fullAreaPct or more) or once the partials since the last full one add
+//     up to ghostBudgetPct. Ambient animation never flashes, except as a
+//     backstop once ghosting reaches ghostHardPct.
 // Panel timings from Phase 1: Partial ~225 ms, Full ~430 ms on the game rect.
 
 #ifndef BACKENDS_PLATFORM_POCKETBOOK_REFRESH_POLICY_H
@@ -42,6 +47,9 @@ struct RefreshParams {
 	// partial (~225 ms, no flash). Screen switches (character sheet, 91%) go full.
 	int fullAreaPct = 85;
 	int ghostBudgetPct = 400;
+	long inputWindowMs = 1500;
+	long ambientIntervalMs = 1500;
+	int ghostHardPct = 1500;
 };
 
 struct RefreshOp {
@@ -61,6 +69,8 @@ public:
 	RefreshOp poll(long now);
 	// Next poll should be a full refresh (resume from background, etc.).
 	void forceFull(long now);
+	// The player tapped or pressed a key at time now.
+	void onInput(long now) { _inputAt = now; }
 
 	int areaPct(const Box &b) const;
 	int ghostPct() const { return _ghost; }
@@ -70,7 +80,7 @@ private:
 	RefreshParams _p;
 	Box _pending;
 	bool _full = false;
-	long _firstAt = 0, _lastAt = 0, _lastPanel = -1000000;
+	long _firstAt = 0, _lastAt = 0, _lastPanel = -1000000, _inputAt = -1000000;
 	int _ghost = 0;
 };
 
