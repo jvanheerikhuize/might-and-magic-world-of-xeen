@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # Build ScummVM (submodule) on the PC with only the Xeen engine.
 #
-#   tools/build-host.sh [null|sdl]     default: sdl
+#   tools/build-host.sh [null|sdl|pocketbook]     default: sdl
 #
-# null: no display; for detection, boot and memory checks (no SDL needed).
-# sdl:  normal window to play in (needs: sudo apt install libsdl2-dev).
+# null:       no display; for detection, boot and memory checks (no SDL needed).
+# sdl:        normal window to play in (needs: sudo apt install libsdl2-dev).
+# pocketbook: our e-ink backend with the headless host stub (scripted input,
+#             PGM frames); see backend/pocketbook/platform-host.cpp.
 # Output: build/host-<backend>/scummvm
 set -euo pipefail
 
@@ -13,6 +15,8 @@ root=$(cd "$(dirname "$0")/.." && pwd)
 out=$root/build/host-$backend
 
 [[ -x $root/scummvm/configure ]] || { echo "scummvm submodule missing: git submodule update --init --depth 1" >&2; exit 1; }
+
+[[ $backend == pocketbook ]] && "$root/tools/link-backend.sh"
 
 mkdir -p "$out"
 cd "$out"
