@@ -1,0 +1,17 @@
+# Screenshots from save slot 0 (tools/make-screenshots.sh).
+wait 8000
+shot town
+key up
+wait 2500
+key up
+wait 2500
+shot street
+tapg 30 165
+wait 3000
+shot character
+key esc
+wait 2500
+menu
+wait 3000
+shot scummvm-menu
+quit

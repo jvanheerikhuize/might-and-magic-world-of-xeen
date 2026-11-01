@@ -1,0 +1,11 @@
+# Screenshots without a save: title menu and credits (tools/make-screenshots.sh).
+wait 3000
+key esc
+wait 24000
+shot title
+tapg 160 112
+wait 1500
+tapg 160 112
+wait 4000
+shot credits
+quit

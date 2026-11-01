@@ -6,7 +6,8 @@
 #
 #   eval "$(tools/pb-toolchain.sh)"     # puts arm-obreey-linux-gnueabi-* on PATH
 #
-# SDK defaults to the tree inkquest uses; override with SDK=/path/to/SDK-B288.
+# SDK: PocketBook's SDK_6.3.0, branch 6.5 (README.md, "Building"); default
+# ~/opt/pocketbook-sdk/SDK_6.3.0-6.5/SDK-B288, override with SDK=/path/to/SDK-B288.
 set -euo pipefail
 
 SDK=${SDK:-$HOME/opt/pocketbook-sdk/SDK_6.3.0-6.5/SDK-B288}

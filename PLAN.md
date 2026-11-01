@@ -131,15 +131,16 @@ Layouts live in data (`keypad-layouts.h`) so they can be adjusted without touchi
 **Phase 2 complete (2026-11-01).** Nothing has run on the reader yet; that's Phase 3.
 
 ### Phase 3 — On the device (1–2 weeks)
-- [ ] Device bundle + launcher (`applications/mmiv.app` → `mmiv/scummvm`, `mm.dat`, game data, saves); first boot on the reader, and read `scummvm.log`.
-- [ ] InkView display: the game is visible, with the refresh policy from §3 (now `refresh-policy.h`). Tune its parameters on the real panel.
-- [ ] Touch keypad + hardware buttons (§4); worker-thread engine with an event queue.
-- [ ] Save/load to `/mnt/ext1/applications/scummvm-xeen/saves`; config in the same folder.
-- [ ] Handle the app losing focus and sleep/wake. Autosave and pause the engine on `EVT_BACKGROUND`, because the firmware sends `EVT_EXIT` about 10 s after Home (Phase 1). Join the engine thread on `EVT_EXIT`, and redraw fully on `EVT_FOREGROUND`.
-- [ ] Logging to a file on the device for debugging (pull it over USB).
+- [x] Device bundle + launcher (`applications/mmiv.app` → `mmiv/scummvm`, `mm.dat`, game data, saves; `tools/make-bundle.sh --install`), home-screen icon (`tools/install-icons.py`, absolute app path in `view.json`).
+- [x] InkView display with the refresh policy from §3 (`refresh-policy.h`), tuned on the panel. Landscape 3x is the default. The firmware's status panel must be off (`SetPanelType(PANEL_DISABLED)`): with it on, the picture moved ~79 px and our black never showed. The landscape layouts keep the panel in portrait and rotate frame, updates and touches themselves (`layout.h`).
+- [x] Touch play on the game itself (landscape) or the 36-button keypad (portrait, `mmiv/layout`); MENU = Esc, hold MENU = ScummVM menu; text prompts open the reader's keyboard, keys paced for Xeen's 5-event queue.
+- [x] Saves in `applications/mmiv/saves`; suspend save to slot 99 on `EVT_BACKGROUND`, a safety save every 2 min, the launcher resumes the newest save. Xeen patch 0004: no saves while signing in at an inn (map 0).
+- [x] Logging to `applications/mmiv/scummvm.log`; session logs in `device/results/`.
+
+**Phase 3 complete (2026-11-01).** Played on the PB628: naming characters, saving, resuming, centred landscape picture.
 
 ### Phase 4 — Package & polish (≤1 week)
-- [ ] `make pocketbook` → `dist/applications/scummvm-xeen/` + `.app` launcher + zip. Install = copy over USB. Optionally add an "install ScummVM-Xeen" action to the PocketBook Lux 5 Studio app.
+- [x] Release zip without game data: `tools/make-release.sh VERSION` → `dist/mmiv-VERSION-pocketbook.zip`. Install = copy over USB. v1.0.0 published on GitHub.
 - [ ] Settings screen: refresh interval N, dither on/off, contrast, left/right-handed keypad.
 - [ ] Battery sanity check: an hour of play, compared against reading.
 
@@ -163,5 +164,5 @@ Layouts live in data (`keypad-layouts.h`) so they can be adjusted without touchi
 - Game data is copyrighted and comes from the player's own purchase. It is **never** committed or distributed here; `.gitignore` excludes it.
 
 ## 8. Next steps
-1. Run Phase 0 with your GOG copy.
-2. Phase 1 C++ smoke test on the PB628, reusing inkquest's SDK path and flags.
+1. Phase 4: settings, battery check.
+2. Phase 5: offer the backend upstream to ScummVM.
