@@ -50,10 +50,17 @@ namespace {
 
 const int kPollMs = 20;
 
+// Milliseconds since the app started. long is 32 bits on the reader, so
+// wall-clock ms (tv_sec * 1000) overflowed; a monotonic clock from start-up
+// stays in range for ~24 days and does not jump when the reader sets its clock.
 long nowMs() {
-	timeval t;
-	gettimeofday(&t, nullptr);
-	return t.tv_sec * 1000L + t.tv_usec / 1000;
+	static int64_t start = -1;
+	timespec t;
+	clock_gettime(CLOCK_MONOTONIC, &t);
+	int64_t ms = (int64_t)t.tv_sec * 1000 + t.tv_nsec / 1000000;
+	if (start < 0)
+		start = ms;
+	return (long)(ms - start);
 }
 
 class InkViewPlatform : public Platform {

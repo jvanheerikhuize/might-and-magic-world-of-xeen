@@ -322,6 +322,26 @@ static void testRefreshAmbient() {
 	CHECK(q.poll(10100 + rp.ambientIntervalMs).kind == RefreshOp::kPartial);
 }
 
+static void testRefreshAmbientAnyClock() {
+	// The reader's clock is wall-clock ms in a 32-bit long: it can start at any
+	// value, negative included. Idle animation before the first input must be
+	// throttled the same way wherever the clock starts (2026-11-01 device test:
+	// ~240 partials/min of a 2% monster animation right after each start).
+	RefreshParams rp;
+	const long bases[] = {0, 1000, -2000000000L, -5000, 2000000000L - 120000};
+	for (long base : bases) {
+		RefreshPolicy p(960, 600, rp);
+		int refreshes = 0;
+		for (long t = 0; t < 60000; t += 250) {
+			p.onFrame(box(400, 200, 520, 300), base + t);  // a ~2% sprite, every 250 ms
+			if (p.poll(base + t + 100).kind != RefreshOp::kNone)
+				refreshes++;
+		}
+		CHECK(refreshes <= 60000 / rp.ambientIntervalMs + 1);
+		CHECK(refreshes >= 60000 / rp.ambientIntervalMs / 2);  // still shown, just slower
+	}
+}
+
 static void testContextMapping() {
 	// Palette: 0 parchment, 1 Xeen green text, 2 Xeen toggle blue, 3 black,
 	// 4 credits orange, 5 credits marble teal.
@@ -373,6 +393,7 @@ int main() {
 	testRefreshSmallThrottle();
 	testRefreshFullRules();
 	testRefreshAmbient();
+	testRefreshAmbientAnyClock();
 	printf("%d passed, %d failed\n", g_pass, g_fail);
 	return g_fail ? 1 : 0;
 }
