@@ -1,0 +1,209 @@
+==== mmiv start 2026-11-01 21:15:59 ====
+arg 0: /mnt/ext1/applications/mmiv/../mmiv/scummvm
+arg 1: --config=/mnt/ext1/applications/mmiv/../mmiv/scummvm.ini
+arg 2: --savepath=/mnt/ext1/applications/mmiv/../mmiv/saves
+arg 3: --path=/mnt/ext1/applications/mmiv/../mmiv/game
+arg 4: --themepath=/mnt/ext1/applications/mmiv/../mmiv
+arg 5: --gui-theme=scummmodern
+arg 6: --save-slot=99
+arg 7: mm:worldofxeen
+audio: /dev/snd present, /proc/asound/cards: (none)
+
+layout landscape: 960x600 frame at 32,79 (3x), orientation 0, rotate 1
+EVT_INIT screen 758x1024 orientation 0
+canvas: 758x1024 scanline 760 depth 8 clip 0,0-757,1023; panel height 0, fb offset 0
+canvas: copying the frame directly
+engine thread: scummvm_main with 8 args
+Using configuration file: /mnt/ext1/applications/mmiv/../mmiv/scummvm.ini
+WARNING: No hardware input were defined, using defaults!
+Running Might and Magic: World of Xeen (DOS/English)
+dark.cc: df194483ecea6abc0511637d712ced7c, 11217676 bytes.
+xeen.cc: 0cffbab533d9afe140e69ec93096f43e, 13435646 bytes.
+148352 pbagent: NetConnect -> 0 (266 ms)
+148353 pbagent: listening on port 8628 (app mmiv)
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+  (last message repeated 17 more times)
+panel 60s: 0 partial (avg 0% area, 0 ms/call), 5 full (2 ms/call)
+panel 60s: 0 partial (avg 0% area, 0 ms/call), 0 full (0 ms/call)
+safety save: saved to slot 99 (35 ms)
+panel 60s: 0 partial (avg 0% area, 0 ms/call), 0 full (0 ms/call)
+  (last message repeated 1 more times)
+safety save: saved to slot 99 (35 ms)
+panel 60s: 0 partial (avg 0% area, 0 ms/call), 0 full (0 ms/call)
+touch 855,547
+touch 850,563
+touch 850,554
+touch 858,566
+touch 497,319
+panel 60s: 51 partial (avg 36% area, 2 ms/call), 4 full (3 ms/call)
+safety save: saved to slot 99 (38 ms)
+panel 60s: 106 partial (avg 27% area, 1 ms/call), 8 full (2 ms/call)
+panel 60s: 156 partial (avg 9% area, 1 ms/call), 6 full (2 ms/call)
+safety save: saved to slot 99 (34 ms)
+panel 60s: 91 partial (avg 41% area, 1 ms/call), 5 full (4 ms/call)
+panel 60s: 38 partial (avg 88% area, 3 ms/call), 2 full (2 ms/call)
+panel 60s: 37 partial (avg 88% area, 3 ms/call), 2 full (6 ms/call)
+panel 60s: 37 partial (avg 88% area, 2 ms/call), 3 full (1 ms/call)
+panel 60s: 38 partial (avg 88% area, 3 ms/call), 2 full (2 ms/call)
+panel 60s: 43 partial (avg 85% area, 10 ms/call), 8 full (4 ms/call)
+panel 60s: 38 partial (avg 88% area, 3 ms/call), 2 full (6 ms/call)
+panel 60s: 32 partial (avg 85% area, 3 ms/call), 4 full (2 ms/call)
+panel 60s: 16 partial (avg 88% area, 3 ms/call), 4 full (8 ms/call)
+panel 60s: 42 partial (avg 83% area, 10 ms/call), 17 full (3 ms/call)
+panel 60s: 2 partial (avg 1% area, 25 ms/call), 3 full (55 ms/call)
+panel 60s: 6 partial (avg 72% area, 22 ms/call), 5 full (7 ms/call)
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+  (last message repeated 35 more times)
+safety save: saved to slot 99 (35 ms)
+panel 60s: 18 partial (avg 15% area, 1 ms/call), 4 full (4 ms/call)
+panel 60s: 57 partial (avg 7% area, 1 ms/call), 2 full (1 ms/call)
+MENU held: ScummVM menu
+safety save: saved to slot 99 (33 ms)
+WARNING: initWithU32String: Fribidi not available, will use input strings as fallback.!
+text prompt open
+keyboard: the game asks for text
+panel 60s: 19 partial (avg 4% area, 1 ms/call), 3 full (7 ms/call)
+keyboard: cancelled, sent Escape
+text key 27 ascii 27 to menu
+text prompt closed
+panel 60s: 39 partial (avg 6% area, 3 ms/call), 4 full (5 ms/call)
+1622606 pbagent: restarting in place (pid 1239, exec /mnt/ext1/applications/mmiv/scummvm as /mnt/ext1/applications/mmiv/../mmiv/scummvm)
+EVT_EXIT
+panel 34s: 33 partial (avg 5% area, 0 ms/call), 0 full (0 ms/call)
+suspend: saved to slot 99 (34 ms)
+engine thread: scummvm_main returned 0
+1622829 pbagent: stopped
+1622829 pbagent: restart via /bin/sh /mnt/ext1/applications/mmiv/../mmiv/../mmiv.app
+==== mmiv start 2026-11-01 21:40:34 ====
+arg 0: /mnt/ext1/applications/mmiv/../mmiv/../mmiv/scummvm
+arg 1: --config=/mnt/ext1/applications/mmiv/../mmiv/../mmiv/scummvm.ini
+arg 2: --savepath=/mnt/ext1/applications/mmiv/../mmiv/../mmiv/saves
+arg 3: --path=/mnt/ext1/applications/mmiv/../mmiv/../mmiv/game
+arg 4: --themepath=/mnt/ext1/applications/mmiv/../mmiv/../mmiv
+arg 5: --gui-theme=scummmodern
+arg 6: --save-slot=99
+arg 7: mm:worldofxeen
+audio: /dev/snd present, /proc/asound/cards: (none)
+
+layout landscape: 960x600 frame at 32,79 (3x), orientation 0, rotate 1
+EVT_INIT screen 758x1024 orientation 0
+canvas: 758x1024 scanline 760 depth 8 clip 0,0-757,1023; panel height 0, fb offset 0
+canvas: copying the frame directly
+engine thread: scummvm_main with 8 args
+Using configuration file: /mnt/ext1/applications/mmiv/../mmiv/../mmiv/scummvm.ini
+WARNING: No hardware input were defined, using defaults!
+Running Might and Magic: World of Xeen (DOS/English)
+dark.cc: df194483ecea6abc0511637d712ced7c, 11217676 bytes.
+xeen.cc: 0cffbab533d9afe140e69ec93096f43e, 13435646 bytes.
+1623283 pbagent: NetConnect -> 0 (266 ms)
+1623284 pbagent: listening on port 8628 (app mmiv)
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+  (last message repeated 17 more times)
+panel 60s: 226 partial (avg 2% area, 0 ms/call), 6 full (3 ms/call)
+panel 60s: 238 partial (avg 2% area, 1 ms/call), 1 full (2 ms/call)
+safety save: saved to slot 99 (35 ms)
+1753589 pbagent: restarting in place (pid 1239, exec /mnt/ext1/applications/mmiv/scummvm as /mnt/ext1/applications/mmiv/../mmiv/../mmiv/scummvm)
+EVT_EXIT
+panel 10s: 44 partial (avg 2% area, 0 ms/call), 0 full (0 ms/call)
+suspend: saved to slot 99 (35 ms)
+engine thread: scummvm_main returned 0
+1753756 pbagent: stopped
+1753756 pbagent: restart via /bin/sh /mnt/ext1/applications/mmiv/../mmiv/../mmiv/../mmiv.app
+==== mmiv start 2026-11-01 21:42:45 ====
+arg 0: /mnt/ext1/applications/mmiv/../mmiv/../mmiv/../mmiv/scummvm
+arg 1: --config=/mnt/ext1/applications/mmiv/../mmiv/../mmiv/../mmiv/scummvm.ini
+arg 2: --savepath=/mnt/ext1/applications/mmiv/../mmiv/../mmiv/../mmiv/saves
+arg 3: --path=/mnt/ext1/applications/mmiv/../mmiv/../mmiv/../mmiv/game
+arg 4: --themepath=/mnt/ext1/applications/mmiv/../mmiv/../mmiv/../mmiv
+arg 5: --gui-theme=scummmodern
+arg 6: --save-slot=99
+arg 7: mm:worldofxeen
+audio: /dev/snd present, /proc/asound/cards: (none)
+
+layout landscape: 960x600 frame at 32,79 (3x), orientation 0, rotate 1
+EVT_INIT screen 758x1024 orientation 0
+canvas: 758x1024 scanline 760 depth 8 clip 0,0-757,1023; panel height 0, fb offset 0
+canvas: copying the frame directly
+engine thread: scummvm_main with 8 args
+Using configuration file: /mnt/ext1/applications/mmiv/../mmiv/../mmiv/../mmiv/scummvm.ini
+WARNING: No hardware input were defined, using defaults!
+Running Might and Magic: World of Xeen (DOS/English)
+dark.cc: df194483ecea6abc0511637d712ced7c, 11217676 bytes.
+xeen.cc: 0cffbab533d9afe140e69ec93096f43e, 13435646 bytes.
+1754218 pbagent: NetConnect -> 0 (275 ms)
+1754219 pbagent: listening on port 8628 (app mmiv)
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+  (last message repeated 17 more times)
+panel 60s: 227 partial (avg 2% area, 1 ms/call), 6 full (4 ms/call)
+panel 60s: 241 partial (avg 2% area, 0 ms/call), 1 full (2 ms/call)
+safety save: saved to slot 99 (40 ms)
+1902492 pbagent: restarting in place (pid 1239, exec /mnt/ext1/applications/mmiv/scummvm as /mnt/ext1/applications/mmiv/../mmiv/../mmiv/../mmiv/scummvm)
+EVT_EXIT
+panel 28s: 113 partial (avg 2% area, 0 ms/call), 0 full (0 ms/call)
+suspend: saved to slot 99 (35 ms)
+engine thread: scummvm_main returned 0
+1902761 pbagent: stopped
+1902761 pbagent: restart via /bin/sh /mnt/ext1/applications/mmiv/../mmiv/../mmiv/../mmiv/../mmiv.app
+==== mmiv start 2026-11-01 21:45:14 ====
+arg 0: /mnt/ext1/applications/mmiv/../mmiv/../mmiv/../mmiv/../mmiv/scummvm
+arg 1: --config=/mnt/ext1/applications/mmiv/../mmiv/../mmiv/../mmiv/../mmiv/scummvm.ini
+arg 2: --savepath=/mnt/ext1/applications/mmiv/../mmiv/../mmiv/../mmiv/../mmiv/saves
+arg 3: --path=/mnt/ext1/applications/mmiv/../mmiv/../mmiv/../mmiv/../mmiv/game
+arg 4: --themepath=/mnt/ext1/applications/mmiv/../mmiv/../mmiv/../mmiv/../mmiv
+arg 5: --gui-theme=scummmodern
+arg 6: --save-slot=99
+arg 7: mm:worldofxeen
+audio: /dev/snd present, /proc/asound/cards: (none)
+
+layout landscape: 960x600 frame at 32,79 (3x), orientation 0, rotate 1
+EVT_INIT screen 758x1024 orientation 0
+canvas: 758x1024 scanline 760 depth 8 clip 0,0-757,1023; panel height 0, fb offset 0
+canvas: copying the frame directly
+engine thread: scummvm_main with 8 args
+Using configuration file: /mnt/ext1/applications/mmiv/../mmiv/../mmiv/../mmiv/../mmiv/scummvm.ini
+WARNING: No hardware input were defined, using defaults!
+Running Might and Magic: World of Xeen (DOS/English)
+dark.cc: df194483ecea6abc0511637d712ced7c, 11217676 bytes.
+xeen.cc: 0cffbab533d9afe140e69ec93096f43e, 13435646 bytes.
+1903214 pbagent: NetConnect -> 0 (265 ms)
+1903214 pbagent: listening on port 8628 (app mmiv)
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+  (last message repeated 17 more times)
+EVT_BACKGROUND
+suspend: saved to slot 99 (43 ms)
+EVT_EXIT
+panel 22s: 75 partial (avg 2% area, 4 ms/call), 5 full (5 ms/call)
+suspend: saved to slot 99 (55 ms)
+engine thread: scummvm_main returned 0
+1925727 pbagent: stopped
+==== mmiv start 2026-11-01 21:48:17 ====
+arg 0: /mnt/ext1/applications/mmiv/scummvm
+arg 1: --config=/mnt/ext1/applications/mmiv/scummvm.ini
+arg 2: --savepath=/mnt/ext1/applications/mmiv/saves
+arg 3: --path=/mnt/ext1/applications/mmiv/game
+arg 4: --themepath=/mnt/ext1/applications/mmiv
+arg 5: --gui-theme=scummmodern
+arg 6: --save-slot=99
+arg 7: mm:worldofxeen
+audio: /dev/snd present, /proc/asound/cards: (none)
+
+layout portrait: 640x400 frame at 59,24 (2x), orientation 0, rotate 0
+EVT_INIT screen 758x1024 orientation 0
+canvas: 758x1024 scanline 760 depth 8 clip 0,0-757,1023; panel height 0, fb offset 0
+canvas: copying the frame directly
+engine thread: scummvm_main with 8 args
+Using configuration file: /mnt/ext1/applications/mmiv/scummvm.ini
+WARNING: No hardware input were defined, using defaults!
+Running Might and Magic: World of Xeen (DOS/English)
+dark.cc: df194483ecea6abc0511637d712ced7c, 11217676 bytes.
+xeen.cc: 0cffbab533d9afe140e69ec93096f43e, 13435646 bytes.
+70691 pbagent: NetConnect -> 0 (294 ms)
+70692 pbagent: listening on port 8628 (app mmiv)
+EVT_FOREGROUND
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+  (last message repeated 17 more times)
+touch 600,580
+touch 85,965
+touch 305,484
+touch 70,484
+panel 60s: 162 partial (avg 2% area, 2 ms/call), 7 full (28 ms/call)
