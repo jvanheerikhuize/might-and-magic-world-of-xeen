@@ -6,19 +6,36 @@
 #
 # Layout (backend/pocketbook/layout.h): MMIV_LAYOUT if set, else the first
 # word of mmiv/layout if that file exists (landscape, landscape-flip, or
-# portrait for the touch keypad), else landscape full screen.
+# portrait for the touch keypad), else landscape full screen. A value that
+# came from the file is read again on a restart in place (pbtk restart runs
+# this launcher with our own environment).
+#
+# Saves: mmiv/saves, or the folder named by the first word of mmiv/savedir
+# (letters, digits, - and _ only), e.g. a separate set for testing that
+# leaves the player's saves and resume point alone.
 DIR="$(dirname "$0")/mmiv"
 BIN="$DIR/scummvm"
 chmod +x "$BIN" 2>/dev/null   # FAT storage does not keep execute bits
-mkdir -p "$DIR/saves"
 
+[ "$MMIV_LAYOUT_FROM" = file ] && MMIV_LAYOUT=""
 if [ -z "$MMIV_LAYOUT" ] && [ -f "$DIR/layout" ]; then
 	read -r MMIV_LAYOUT _ <"$DIR/layout"
+	export MMIV_LAYOUT_FROM=file
 fi
 export MMIV_LAYOUT="${MMIV_LAYOUT:-landscape}"
 
+SAVES=saves
+if [ -f "$DIR/savedir" ]; then
+	read -r WANT _ <"$DIR/savedir"
+	case "$WANT" in
+	"" | *[!A-Za-z0-9_-]*) ;;
+	*) SAVES=$WANT ;;
+	esac
+fi
+mkdir -p "$DIR/$SAVES"
+
 SLOT=""
-LATEST=$(ls -t "$DIR"/saves/worldofxeen.[0-9][0-9][0-9] 2>/dev/null | head -n 1)
+LATEST=$(ls -t "$DIR/$SAVES"/worldofxeen.[0-9][0-9][0-9] 2>/dev/null | head -n 1)
 if [ -n "$LATEST" ]; then
 	N=$(expr "${LATEST##*.}" + 0)
 	SLOT="--save-slot=$N"
@@ -26,5 +43,5 @@ fi
 
 cd "$DIR" || exit 1
 # The light ScummVM theme reads far better on e-ink than the built-in dark one.
-exec "$BIN" --config="$DIR/scummvm.ini" --savepath="$DIR/saves" --path="$DIR/game" \
+exec "$BIN" --config="$DIR/scummvm.ini" --savepath="$DIR/$SAVES" --path="$DIR/game" \
 	--themepath="$DIR" --gui-theme=scummmodern $SLOT mm:worldofxeen
