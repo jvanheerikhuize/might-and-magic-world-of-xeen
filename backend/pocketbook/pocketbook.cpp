@@ -149,6 +149,18 @@ void OSystem_PocketBook::translate(const Input &in) {
 		ev.type = Common::EVENT_MAINMENU;
 		_pending.push(ev);
 		return;
+	case Input::kDebugger:
+		ev.type = Common::EVENT_DEBUGGER;
+		_pending.push(ev);
+		return;
+	case Input::kSaveSlot: {
+		bool ok = g_engine && g_engine->canSaveGameStateCurrently() &&
+		          g_engine->saveGameState(in.keycode, in.text, false).getCode() == Common::kNoError;
+		logMessage(LogMessageType::kInfo,
+		           Common::String::format("savegame: slot %d \"%s\" %s\n", in.keycode, in.text,
+		                                  ok ? "saved" : "NOT saved").c_str());
+		return;
+	}
 	case Input::kTextBegin:
 		// ScummVM's text fields may be pre-filled (a save's old name): typed
 		// text replaces it. Xeen's prompts always start empty.
