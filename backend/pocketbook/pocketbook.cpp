@@ -27,6 +27,7 @@
 #include "common/keyboard.h"
 #include "engines/engine.h"
 
+#include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -35,6 +36,9 @@ namespace PocketBook {
 OSystem_PocketBook::OSystem_PocketBook(Platform *platform) : _platform(platform) {
 	_fsFactory = new POSIXFilesystemFactory();
 	gettimeofday(&_startTime, nullptr);
+	// Tests shorten the safety-save interval; the reader uses the default.
+	const char *s = getenv("MMIV_SAFETY_SAVE_MS");
+	_safetySaveMs = s && atoi(s) > 0 ? (uint32)atoi(s) : (uint32)kSafetySaveMs;
 }
 
 OSystem_PocketBook::~OSystem_PocketBook() {
@@ -90,10 +94,13 @@ void OSystem_PocketBook::translate(const Input &in) {
 		_pending.push(ev);
 		return;
 	case Input::kResume:
+		_suspended = false;
 		eink()->invalidate();
 		return;
 	case Input::kSuspend:
-		saveOnSuspend();
+		_suspended = true;
+		_suspendSaved = trySave("suspend", true);
+		_lastSaveTry = getMillis();
 		return;
 	case Input::kNone:
 		return;
@@ -123,25 +130,50 @@ void OSystem_PocketBook::pressKeypad(int px, int py) {
 	}
 }
 
-void OSystem_PocketBook::saveOnSuspend() {
-	if (!g_engine) {
-		logMessage(LogMessageType::kInfo, "suspend: no engine running, nothing to save\n");
-		return;
+// Save to slot 99 if the game allows it right now. `reason` goes to the log;
+// `logRefusal` is off for the periodic safety save, which retries quietly.
+bool OSystem_PocketBook::trySave(const char *reason, bool logRefusal) {
+	if (_saving || !g_engine)
+		return false;
+	if (!g_engine->canSaveGameStateCurrently()) {
+		if (logRefusal)
+			logMessage(LogMessageType::kInfo,
+			           Common::String::format("%s: game cannot be saved right now (combat, event or no-save area)\n",
+			                                  reason).c_str());
+		return false;
 	}
-	Common::U32String why;
-	if (!g_engine->canSaveGameStateCurrently(&why)) {
-		logMessage(LogMessageType::kInfo, "suspend: game cannot be saved right now (combat, event or no-save area)\n");
-		return;
-	}
+	_saving = true;
+	uint32 t0 = getMillis();
 	Common::Error err = g_engine->saveGameState(kSuspendSaveSlot, "Suspended", false);
-	logMessage(LogMessageType::kInfo, err.getCode() == Common::kNoError
-	                                      ? "suspend: saved to slot 99\n"
-	                                      : "suspend: saving to slot 99 FAILED\n");
+	_saving = false;
+	bool ok = err.getCode() == Common::kNoError;
+	logMessage(LogMessageType::kInfo, Common::String::format("%s: %s slot 99 (%u ms)\n", reason,
+	                                                         ok ? "saved to" : "FAILED saving to",
+	                                                         getMillis() - t0).c_str());
+	return ok;
+}
+
+// Called from pollEvent. While in the background the firmware ends the app
+// ~10 s after Home (Phase 1), so a refused suspend save is retried until the
+// game can be saved (e.g. a dialogue ends). While playing, a rolling safety
+// save every kSafetySaveMs bounds what a refused suspend save can lose.
+void OSystem_PocketBook::handleSaves() {
+	uint32 now = getMillis();
+	if (_suspended) {
+		if (!_suspendSaved && now - _lastSaveTry >= kRetryMs) {
+			_lastSaveTry = now;
+			_suspendSaved = trySave("suspend retry", false);
+		}
+	} else if (now - _lastSafetySave >= _safetySaveMs) {
+		if (trySave("safety save", false))
+			_lastSafetySave = now;
+	}
 }
 
 bool OSystem_PocketBook::pollEvent(Common::Event &event) {
 	((DefaultTimerManager *)getTimerManager())->checkTimers();
 	((NullMixerManager *)_mixerManager)->update(1);
+	handleSaves();
 
 	Input in;
 	while (_pending.empty() && _platform->pollInput(in))

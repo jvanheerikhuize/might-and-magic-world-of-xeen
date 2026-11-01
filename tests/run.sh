@@ -44,3 +44,9 @@ MMIV_SAVES_FROM=build/test-keypad-and-suspend/saves \
 	tools/run-host-script.sh tests/host/resume-99.txt build/test-resume 99
 test -f build/test-resume/r01-resumed.pgm
 echo "ok   slot 99 written on suspend and loads again"
+
+echo "== rolling safety save"
+MMIV_SAFETY_SAVE_MS=4000 tools/run-host-script.sh tests/host/safety-save.txt build/test-safety 0
+grep -q 'safety save: saved to slot 99' build/test-safety/run.log
+test -f build/test-safety/saves/worldofxeen.099
+echo "ok   $(grep -c 'safety save: saved' build/test-safety/run.log) safety save(s) in ~9 s at a 4 s interval"

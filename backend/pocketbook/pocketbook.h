@@ -48,13 +48,18 @@ protected:
 private:
 	void translate(const Input &in);
 	void pressKeypad(int px, int py);
-	void saveOnSuspend();
+	bool trySave(const char *reason, bool logRefusal);
+	void handleSaves();
 	EinkGraphicsManager *eink();
+
+	enum { kRetryMs = 500, kSafetySaveMs = 5 * 60 * 1000 };
 
 	Platform *_platform;
 	timeval _startTime;
 	Common::Queue<Common::Event> _pending;
 	Common::Point _mouse;
+	bool _suspended = false, _suspendSaved = false, _saving = false;
+	uint32 _lastSaveTry = 0, _lastSafetySave = 0, _safetySaveMs = kSafetySaveMs;
 };
 
 } // namespace PocketBook
