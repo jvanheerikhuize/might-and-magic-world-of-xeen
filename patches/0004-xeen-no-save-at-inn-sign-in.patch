@@ -1,0 +1,40 @@
+Xeen: no saves while signing in at an inn; load such saves in the town
+
+Signing in at an inn sets the party map to 0 while the party dialog is open.
+Saving was allowed then (ScummVM menu, autosave, a backend's suspend save),
+and loading that save failed: "Could not open file - maze0000.evt!" and the
+debugger. Refuse to save on map 0, and load an existing map-0 save in the
+map the party signed in from (_priorMazeId).
+
+diff --git a/engines/mm/xeen/saves.cpp b/engines/mm/xeen/saves.cpp
+index 86c3635d..8bf4739f 100644
+--- a/engines/mm/xeen/saves.cpp
++++ b/engines/mm/xeen/saves.cpp
+@@ -200,6 +200,13 @@ Common::Error SavesManager::loadGameState(int slot) {
+ 	combat.reset();
+ 	party._treasure.reset();
+ 
++	// A save made while signing in at an inn (party dialog open) has map 0,
++	// which does not exist: continue in the inn's town instead.
++	if (party._mazeId == 0 && party._priorMazeId != 0) {
++		warning("Save has no map (made at an inn); continuing in map %d", party._priorMazeId);
++		party._mazeId = party._priorMazeId;
++	}
++
+ 	// Load the new map
+ 	map.clearMaze();
+ 	map._loadCcNum = files._ccNum;
+diff --git a/engines/mm/xeen/xeen.cpp b/engines/mm/xeen/xeen.cpp
+index fceb3e18..2078aac7 100644
+--- a/engines/mm/xeen/xeen.cpp
++++ b/engines/mm/xeen/xeen.cpp
+@@ -246,7 +246,9 @@ bool XeenEngine::canLoadGameStateCurrently(Common::U32String *msg) {
+ }
+ 
+ bool XeenEngine::canSaveGameStateCurrently(Common::U32String *msg) {
++	// Map 0: the party is signing in at an inn (Locations::Tavern), no map.
+ 	return _mode != MODE_COMBAT && _mode != MODE_STARTUP && _mode != MODE_SCRIPT_IN_PROGRESS
++		&& _party->_mazeId != 0
+ 		&& (_map->mazeData()._mazeFlags & RESTRICTION_SAVE) == 0;
+ }
+ 
