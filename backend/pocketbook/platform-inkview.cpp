@@ -102,12 +102,22 @@ public:
 
 	const char *appDir() const override { return _appDir.c_str(); }
 
+	// Identical consecutive messages are collapsed into one "repeated" line
+	// (Xeen's sprite-override check warns 18 times per area load).
 	void log(const char *message) override {
 		std::lock_guard<std::mutex> lk(_logMu);
-		if (_log) {
-			fputs(message, _log);
-			fflush(_log);
+		if (!_log)
+			return;
+		if (_lastLog == message) {
+			_repeats++;
+			return;
 		}
+		if (_repeats)
+			fprintf(_log, "  (last message repeated %d more times)\n", _repeats);
+		_repeats = 0;
+		_lastLog = message;
+		fputs(message, _log);
+		fflush(_log);
 	}
 
 	void engineFinished() override {
@@ -301,6 +311,8 @@ private:
 	std::string _appDir;
 	std::vector<std::string> _args;
 	FILE *_log = nullptr;
+	std::string _lastLog;
+	int _repeats = 0;
 	std::mutex _mu, _logMu;
 	std::deque<Input> _input;
 	std::vector<uint8_t> _frame = std::vector<uint8_t>(layout().frameW * layout().frameH, 0xff);
