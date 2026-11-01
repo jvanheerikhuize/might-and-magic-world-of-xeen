@@ -13,7 +13,8 @@
 # Saves: mmiv/saves, or the folder named by the first word of mmiv/savedir
 # (letters, digits, - and _ only), e.g. a separate set for testing that
 # leaves the player's saves and resume point alone.
-DIR="$(dirname "$0")/mmiv"
+# Canonical path: a restart in place runs us as .../mmiv/../mmiv.app.
+DIR=$(cd "$(dirname "$0")/mmiv" 2>/dev/null && pwd -P) || DIR="$(dirname "$0")/mmiv"
 BIN="$DIR/scummvm"
 chmod +x "$BIN" 2>/dev/null   # FAT storage does not keep execute bits
 
@@ -39,6 +40,16 @@ LATEST=$(ls -t "$DIR/$SAVES"/worldofxeen.[0-9][0-9][0-9] 2>/dev/null | head -n 1
 if [ -n "$LATEST" ]; then
 	N=$(expr "${LATEST##*.}" + 0)
 	SLOT="--save-slot=$N"
+fi
+# mmiv/resume: start this slot once instead (pbtk scenarios: "open the game
+# at save N"); the file is removed so the next start resumes as usual.
+if [ -f "$DIR/resume" ]; then
+	read -r WANT _ <"$DIR/resume"
+	rm -f "$DIR/resume"
+	case "$WANT" in
+	"" | *[!0-9]*) ;;
+	*) [ -f "$DIR/$SAVES/worldofxeen.$(printf %03d "$WANT")" ] && SLOT="--save-slot=$(expr "$WANT" + 0)" ;;
+	esac
 fi
 
 cd "$DIR" || exit 1

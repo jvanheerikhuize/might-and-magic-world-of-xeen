@@ -28,6 +28,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
@@ -66,7 +67,10 @@ long nowMs() {
 class InkViewPlatform : public Platform {
 public:
 	void init(int argc, char **argv) {
-		_appDir = argc > 0 ? argv[0] : ".";
+		// Canonical: a restart runs the launcher as <appDir>/../mmiv.app, and
+		// without this every restart added another "/../mmiv" to all paths.
+		char real[PATH_MAX];
+		_appDir = argc > 0 ? (realpath(argv[0], real) ? real : argv[0]) : ".";
 		size_t s = _appDir.rfind('/');
 		_appDir = s == std::string::npos ? "." : _appDir.substr(0, s);
 		// Append across launches (suspend/resume spans two); start over past 256 KB.
@@ -522,7 +526,8 @@ void startAgent(InkViewPlatform *pf) {
 	static std::string logPath, launcher;
 	logPath = std::string(pf->appDir()) + "/scummvm.log";
 	// Restart through the launcher, so it resumes the newest save (slot 99).
-	launcher = std::string(pf->appDir()) + "/../mmiv.app";
+	launcher = pf->appDir();
+	launcher = launcher.substr(0, launcher.rfind('/') + 1) + "mmiv.app";  // next to the app folder
 	pbagent_config cfg = {};
 	cfg.app_name = "mmiv";
 	cfg.log_path = logPath.c_str();

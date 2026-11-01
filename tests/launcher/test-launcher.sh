@@ -31,6 +31,8 @@ expect "suspend save is newest: resume slot 99" "--save-slot=99 "
 touch -d '2026-11-01 12:00' "$t/mmiv/saves/worldofxeen.003"
 expect "newer manual save: resume slot 3" "--save-slot=3 "
 expect "game id and paths passed" "--path=$t/mmiv/game"
+got=$(env -u MMIV_LAYOUT -u MMIV_LAYOUT_FROM $SH "$t/mmiv/../mmiv.app")
+[[ $got == *"--path=$(cd "$t" && pwd -P)/mmiv/game "* ]] && echo "ok   paths stay canonical when started as mmiv/../mmiv.app" || { echo "FAIL canonical: $got"; fail=1; }
 expect "light GUI theme from the app folder" "--themepath=$t/mmiv --gui-theme=scummmodern"
 expect "default layout: landscape" "layout=landscape "
 echo "landscape-flip  # turned the other way" >"$t/mmiv/layout"
@@ -54,4 +56,11 @@ echo "../etc" >"$t/mmiv/savedir"
 expect "savedir with a path is ignored" "--savepath=$t/mmiv/saves "
 echo "saves" >"$t/mmiv/savedir"
 expect "savedir back to the player's saves" "--save-slot=3 "
+
+echo 0 >"$t/mmiv/resume"
+expect "resume file starts that slot once" "--save-slot=0 "
+[[ ! -e $t/mmiv/resume ]] && echo "ok   resume file removed after use" || { echo "FAIL resume file kept"; fail=1; }
+expect "then the newest save again" "--save-slot=3 "
+echo 42 >"$t/mmiv/resume"
+expect "resume file for a missing save is ignored" "--save-slot=3 "
 exit $fail
