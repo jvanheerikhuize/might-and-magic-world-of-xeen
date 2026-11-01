@@ -1,0 +1,5 @@
+# Load the suspend save written by keypad-and-suspend.txt (slot 99).
+# Run: MMIV_SAVES_FROM=build/test-keypad/saves tools/run-host-script.sh tests/host/resume-99.txt build/test-resume 99
+wait 5000
+shot r01-resumed
+quit

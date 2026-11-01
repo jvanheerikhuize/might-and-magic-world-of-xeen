@@ -15,6 +15,7 @@
 
 #include "pocketbook.h"
 #include "eink-graphics.h"
+#include "keypad.h"
 
 #include "backends/events/default/default-events.h"
 #include "backends/fs/posix/posix-fs-factory.h"
@@ -24,6 +25,7 @@
 #include "backends/timer/default/default-timer.h"
 #include "common/fs.h"
 #include "common/keyboard.h"
+#include "engines/engine.h"
 
 #include <time.h>
 #include <unistd.h>
@@ -58,8 +60,11 @@ void OSystem_PocketBook::translate(const Input &in) {
 	case Input::kTouchDown:
 	case Input::kTouchUp: {
 		int x, y;
-		if (!eink()->panelToScreen(in.x, in.y, x, y))
-			return;  // outside the game frame: the keypad area (Phase 3)
+		if (!eink()->panelToScreen(in.x, in.y, x, y)) {
+			if (in.type == Input::kTouchDown)
+				pressKeypad(in.x, in.y);
+			return;
+		}
 		_mouse = Common::Point(x, y);
 		ev.mouse = _mouse;
 		if (in.type == Input::kTouchDown) {
@@ -76,7 +81,7 @@ void OSystem_PocketBook::translate(const Input &in) {
 	case Input::kKeyDown:
 	case Input::kKeyUp:
 		ev.type = in.type == Input::kKeyDown ? Common::EVENT_KEYDOWN : Common::EVENT_KEYUP;
-		ev.kbd = Common::KeyState((Common::KeyCode)in.keycode, in.ascii);
+		ev.kbd = Common::KeyState((Common::KeyCode)in.keycode, in.ascii, in.flags);
 		ev.mouse = _mouse;
 		_pending.push(ev);
 		return;
@@ -87,10 +92,51 @@ void OSystem_PocketBook::translate(const Input &in) {
 	case Input::kResume:
 		eink()->invalidate();
 		return;
-	case Input::kSuspend:  // autosave on suspend is Phase 3 (PLAN.md)
+	case Input::kSuspend:
+		saveOnSuspend();
+		return;
 	case Input::kNone:
 		return;
 	}
+}
+
+void OSystem_PocketBook::pressKeypad(int px, int py) {
+	const KeypadButton *b = keypadHit(px, py);
+	if (!b)
+		return;
+	Common::Event ev;
+	ev.mouse = _mouse;
+	switch (b->action) {
+	case KeypadButton::kKey:
+		ev.kbd = Common::KeyState((Common::KeyCode)b->keycode, b->ascii, b->flags);
+		ev.type = Common::EVENT_KEYDOWN;
+		_pending.push(ev);
+		ev.type = Common::EVENT_KEYUP;
+		_pending.push(ev);
+		break;
+	case KeypadButton::kMainMenu:
+		ev.type = Common::EVENT_MAINMENU;
+		_pending.push(ev);
+		break;
+	case KeypadButton::kTextEntry:
+		break;  // the platform opens its on-screen keyboard and sends the text as keys
+	}
+}
+
+void OSystem_PocketBook::saveOnSuspend() {
+	if (!g_engine) {
+		logMessage(LogMessageType::kInfo, "suspend: no engine running, nothing to save\n");
+		return;
+	}
+	Common::U32String why;
+	if (!g_engine->canSaveGameStateCurrently(&why)) {
+		logMessage(LogMessageType::kInfo, "suspend: game cannot be saved right now (combat, event or no-save area)\n");
+		return;
+	}
+	Common::Error err = g_engine->saveGameState(kSuspendSaveSlot, "Suspended", false);
+	logMessage(LogMessageType::kInfo, err.getCode() == Common::kNoError
+	                                      ? "suspend: saved to slot 99\n"
+	                                      : "suspend: saving to slot 99 FAILED\n");
 }
 
 bool OSystem_PocketBook::pollEvent(Common::Event &event) {

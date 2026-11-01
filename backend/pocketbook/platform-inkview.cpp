@@ -34,6 +34,7 @@
 
 #define FORBIDDEN_SYMBOL_ALLOW_ALL
 
+#include "keypad.h"
 #include "pocketbook.h"
 #include "refresh-policy.h"
 
@@ -142,9 +143,74 @@ public:
 	}
 
 	void resumed() {
+		drawKeypad();
 		std::lock_guard<std::mutex> lk(_mu);
 		_policy.forceFull(nowMs());
 	}
+
+	// ---- keypad (main thread) ----
+
+	void drawKeypad() {
+		if (!_font)
+			_font = OpenFont(DEFAULTFONTB, 24, 1);
+		int n;
+		const KeypadButton *bs = keypadButtons(n);
+		FillArea(0, keypadTop() - 8, ScreenWidth(), ScreenHeight() - keypadTop() + 8, WHITE);
+		SetFont(_font, BLACK);
+		for (int i = 0; i < n; i++) {
+			const KeypadButton &b = bs[i];
+			DrawRect(b.x, b.y, b.w, b.h, BLACK);
+			DrawRect(b.x + 1, b.y + 1, b.w - 2, b.h - 2, BLACK);
+			DrawTextRect(b.x + 2, b.y + 2, b.w - 4, b.h - 4, b.label, ALIGN_CENTER | VALIGN_MIDDLE);
+		}
+	}
+
+	// Invert the button while it is held so the tap visibly registers.
+	void keypadDown(int x, int y) {
+		const KeypadButton *b = keypadHit(x, y);
+		if (!b)
+			return;
+		_held = b;
+		InvertArea(b->x + 2, b->y + 2, b->w - 4, b->h - 4);
+		PartialUpdate(b->x, b->y, b->w, b->h);
+		if (b->action == KeypadButton::kTextEntry)
+			openKeyboard();
+	}
+
+	void keypadUp() {
+		if (!_held)
+			return;
+		const KeypadButton *b = _held;
+		_held = nullptr;
+		InvertArea(b->x + 2, b->y + 2, b->w - 4, b->h - 4);
+		PartialUpdate(b->x, b->y, b->w, b->h);
+	}
+
+	void openKeyboard() {
+		_held = nullptr;  // the keyboard covers the screen; we redraw on return
+		memset(_text, 0, sizeof(_text));
+		OpenKeyboard("Text for the game", _text, sizeof(_text) - 1, 0, keyboardThunk);
+	}
+
+	// Typed text goes to the game as key presses (names, riddles, passwords).
+	void keyboardDone(char *s) {
+		if (s) {
+			for (const char *p = s; *p; p++) {
+				Input in;
+				char c = *p;
+				in.keycode = (c >= 'A' && c <= 'Z') ? c - 'A' + 'a' : (unsigned char)c;
+				in.ascii = (unsigned char)c;
+				in.type = Input::kKeyDown;
+				push(in);
+				in.type = Input::kKeyUp;
+				push(in);
+			}
+			logf("keyboard: sent %d characters\n", (int)strlen(s));
+		}
+		resumed();
+	}
+
+	static void keyboardThunk(char *s);
 
 	void shutdown() {
 		if (_engine.joinable()) {
@@ -181,6 +247,9 @@ private:
 	RefreshPolicy _policy{kFrameW, kFrameH};
 	bool _engineDone = false;
 	std::thread _engine;
+	ifont *_font = nullptr;
+	const KeypadButton *_held = nullptr;
+	char _text[64];
 };
 
 InkViewPlatform *g_platform = nullptr;
@@ -189,8 +258,13 @@ void InkViewPlatform::pollThunk() {
 	g_platform->poll();
 }
 
-// Hardware buttons until the Phase 3 keypad exists: PREV/NEXT step
-// forward/back, MENU and BACK are Escape.
+void InkViewPlatform::keyboardThunk(char *s) {
+	g_platform->keyboardDone(s);
+}
+
+// Hardware buttons: PREV/NEXT step forward/back (page-turn buttons are the
+// quickest way to walk), MENU and BACK are Escape. Everything else is on the
+// touch keypad (keypad.cpp).
 bool mapKey(int ivKey, int &code, uint16_t &ascii) {
 	switch (ivKey) {
 	case IV_KEY_PREV: code = Common::KEYCODE_UP; ascii = 0; return true;
@@ -208,6 +282,7 @@ int handler(int type, int p1, int p2) {
 	case EVT_INIT:
 		pf->logf("EVT_INIT screen %dx%d\n", ScreenWidth(), ScreenHeight());
 		ClearScreen();
+		pf->drawKeypad();
 		FullUpdate();
 		pf->startEngine();
 		SetHardTimer("mmiv_poll", InkViewPlatform::pollThunk, kPollMs);
@@ -217,7 +292,11 @@ int handler(int type, int p1, int p2) {
 		in.type = type == EVT_POINTERDOWN ? Input::kTouchDown : Input::kTouchUp;
 		in.x = p1;
 		in.y = p2;
-		pf->push(in);
+		if (type == EVT_POINTERDOWN && p2 >= keypadTop())
+			pf->keypadDown(p1, p2);
+		else if (type == EVT_POINTERUP)
+			pf->keypadUp();
+		pf->push(in);  // the OSystem turns keypad taps into keys (keypad.cpp)
 		break;
 	case EVT_KEYPRESS:
 	case EVT_KEYRELEASE: {

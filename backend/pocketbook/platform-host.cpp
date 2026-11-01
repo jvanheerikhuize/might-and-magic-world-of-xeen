@@ -28,7 +28,9 @@
 //   key NAME           key down+up: up down left right esc enter space tab
 //                      backspace f1..f12 or a single character
 //   shot NAME          write OUT/NAME.pgm (the 640x400 gray frame as last presented)
+//   suspend / resume   app sent to / back from the background (suspend saves to slot 99)
 //   quit               send EVENT_QUIT
+// Taps below the game frame hit the touch keypad (keypad.cpp), as on the device.
 
 #define FORBIDDEN_SYMBOL_ALLOW_ALL
 
@@ -234,10 +236,12 @@ private:
 			_queued.push_back(k);
 		} else if (sscanf(cmd.c_str(), "shot %63s", name) == 1) {
 			writePgm(name);
-		} else if (cmd == "quit") {
+		} else if (cmd == "quit" || cmd == "suspend" || cmd == "resume") {
 			Input q;
-			q.type = Input::kQuit;
+			q.type = cmd == "quit" ? Input::kQuit : cmd == "suspend" ? Input::kSuspend : Input::kResume;
 			_queued.push_back(q);
+			if (q.type == Input::kResume)
+				_policy.forceFull(now);
 		} else {
 			fprintf(stderr, "mmiv-host: bad script line '%s'\n", cmd.c_str());
 		}

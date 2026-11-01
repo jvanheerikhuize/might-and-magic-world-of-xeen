@@ -6,9 +6,11 @@ CXXFLAGS := -std=c++11 -O1 -g -Wall -Wextra -Werror -I$(SRC)
 
 all: test
 
-$(OUT)/test_backend: test_backend.cpp $(SRC)/gray-map.cpp $(SRC)/refresh-policy.cpp $(SRC)/gray-map.h $(SRC)/refresh-policy.h
+SRCS := $(SRC)/gray-map.cpp $(SRC)/refresh-policy.cpp $(SRC)/keypad.cpp
+
+$(OUT)/test_backend: test_backend.cpp $(SRCS) $(wildcard $(SRC)/*.h)
 	@mkdir -p $(OUT)
-	$(CXX) $(CXXFLAGS) -o $@ test_backend.cpp $(SRC)/gray-map.cpp $(SRC)/refresh-policy.cpp -lm
+	$(CXX) $(CXXFLAGS) -o $@ test_backend.cpp $(SRCS) -lm
 
 test: $(OUT)/test_backend
 	$(OUT)/test_backend

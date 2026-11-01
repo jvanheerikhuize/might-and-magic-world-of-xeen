@@ -38,7 +38,14 @@ struct Input {
 	int x = 0, y = 0;        // touch: panel coordinates
 	int keycode = 0;         // key: Common::KeyCode value
 	uint16_t ascii = 0;
+	uint8_t flags = 0;       // key: Common::KBD_* modifiers
 };
+
+// Save slot written when the app goes to the background (the firmware ends
+// the app ~10 s after Home, Phase 1). Slot 0 is Xeen's autosave slot and may
+// hold the player's own save, so a separate slot is used. The launcher
+// resumes the most recently written save.
+enum { kSuspendSaveSlot = 99 };
 
 class Platform {
 public:

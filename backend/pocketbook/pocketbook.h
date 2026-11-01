@@ -47,6 +47,8 @@ protected:
 
 private:
 	void translate(const Input &in);
+	void pressKeypad(int px, int py);
+	void saveOnSuspend();
 	EinkGraphicsManager *eink();
 
 	Platform *_platform;

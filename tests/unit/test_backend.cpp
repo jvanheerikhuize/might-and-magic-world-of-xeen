@@ -3,6 +3,8 @@
 // Run: make -C tests/unit
 
 #include "gray-map.h"
+#include "keypad.h"
+#include "pb-platform.h"
 #include "refresh-policy.h"
 
 #include <stdio.h>
@@ -174,7 +176,46 @@ static void testRefreshFullRules() {
 	CHECK(p.poll(t).kind == RefreshOp::kFull);
 }
 
+static const KeypadButton *byLabel(const char *label) {
+	int n;
+	const KeypadButton *bs = keypadButtons(n);
+	for (int i = 0; i < n; i++)
+		if (!strcmp(bs[i].label, label))
+			return &bs[i];
+	return nullptr;
+}
+
+static void testKeypad() {
+	int n;
+	const KeypadButton *bs = keypadButtons(n);
+	CHECK(n == 36);
+	CHECK(keypadTop() >= kFrameY + kFrameH);
+	for (int i = 0; i < n; i++) {
+		const KeypadButton &b = bs[i];
+		CHECK(b.x >= 0 && b.y >= keypadTop() && b.x + b.w <= kPanelW && b.y + b.h <= kPanelH);
+		CHECK(b.w >= 60 && b.h >= 60);  // >= ~7 mm at 212 ppi: finger-sized
+		CHECK(keypadHit(b.x + b.w / 2, b.y + b.h / 2) == &b);
+		for (int j = i + 1; j < n; j++) {
+			const KeypadButton &o = bs[j];
+			bool overlap = b.x < o.x + o.w && o.x < b.x + b.w && b.y < o.y + o.h && o.y < b.y + b.h;
+			CHECK(!overlap);
+		}
+	}
+	CHECK(keypadHit(kFrameX + 10, kFrameY + 10) == nullptr);  // game area is not keypad
+	// Key values must equal ScummVM's (common/keyboard.h, checked against v2026.4.0).
+	CHECK(byLabel("Fwd")->keycode == 273);      // KEYCODE_UP
+	CHECK(byLabel("Turn L")->keycode == 276);   // KEYCODE_LEFT
+	CHECK(byLabel("Side L")->keycode == 276 && byLabel("Side L")->flags == 1);  // Ctrl+Left (KBD_CTRL)
+	CHECK(byLabel("Side R")->keycode == 275 && byLabel("Side R")->flags == 1);
+	CHECK(byLabel("1")->keycode == 282 && byLabel("1")->ascii == 315);  // F1 / ASCII_F1
+	CHECK(byLabel("Panel")->keycode == 9);      // Tab: Xeen control panel
+	CHECK(byLabel("Esc")->keycode == 27);
+	CHECK(byLabel("Abc")->action == KeypadButton::kTextEntry);
+	CHECK(byLabel("ScummVM")->action == KeypadButton::kMainMenu);
+}
+
 int main() {
+	testKeypad();
 	testPaperMapping();
 	testQuantizeAndDither();
 	testLut();

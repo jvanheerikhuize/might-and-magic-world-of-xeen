@@ -20,9 +20,13 @@ data=$HOME/games/xeen
 [[ -x $bin ]] || { echo "build first: tools/build-host.sh pocketbook" >&2; exit 1; }
 mkdir -p "$out"
 out=$(realpath "$out")
-rm -f "$out"/*.pgm "$out"/*.png "$out"/present.log
+rm -rf "$out"/*.pgm "$out"/*.png "$out"/present.log "$out"/saves
+# Work on a copy of the saves so test runs never change the real ones.
+# MMIV_SAVES_FROM=DIR starts from another run's saves instead (resume tests).
+mkdir -p "$out/saves"
+cp "${MMIV_SAVES_FROM:-$data/saves}"/* "$out/saves/" 2>/dev/null || true
 
-args=(--config="$out/scummvm.ini" --path="$data/scummvm/world-of-xeen" --savepath="$data/saves")
+args=(--config="$out/scummvm.ini" --path="$data/scummvm/world-of-xeen" --savepath="$out/saves")
 [[ -n $slot ]] && args+=(--save-slot="$slot")
 
 set +e

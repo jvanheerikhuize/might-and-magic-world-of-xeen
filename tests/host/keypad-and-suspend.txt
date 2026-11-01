@@ -1,0 +1,28 @@
+# Play via the touch keypad only (panel coordinates, button centres from
+# keypad.cpp), then suspend: the backend must save to slot 99.
+# Run: tools/run-host-script.sh tests/host/keypad-and-suspend.txt build/test-keypad 0
+wait 5000
+shot k01-loaded
+# Fwd (row 0, column 1 of the movement pad)
+tap 187 484
+wait 1000
+shot k02-fwd
+# Turn L
+tap 70 484
+wait 1000
+shot k03-turn-left
+# Side L (Ctrl+Left strafe)
+tap 70 580
+wait 1000
+shot k04-side-left
+# Party member 1 (F1): character sheet
+tap 73 676
+wait 1500
+shot k05-char1
+# Esc (row 5, first button)
+tap 85 964
+wait 1000
+shot k06-esc
+suspend
+wait 1500
+quit
