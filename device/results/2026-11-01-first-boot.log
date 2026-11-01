@@ -1,0 +1,56 @@
+EVT_INIT screen 758x1024
+engine thread: scummvm_main with 6 args
+EVT_FOREGROUND
+WARNING: File::open: node does not exist!
+Creating configuration file: /mnt/ext1/applications/mmiv/scummvm.ini
+WARNING: No hardware input were defined, using defaults!
+Running Might and Magic: World of Xeen (DOS/English)
+dark.cc: df194483ecea6abc0511637d712ced7c, 11217676 bytes.
+xeen.cc: 0cffbab533d9afe140e69ec93096f43e, 13435646 bytes.
+WARNING: generateZipSet: Could not find 'gui-icons.dat'!
+WARNING: Could not find theme 'scummremastered' falling back to builtin!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+keyboard: sent 4 characters
+WARNING: initWithU32String: Fribidi not available, will use input strings as fallback.!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+WARNING: Only Windows v1-v5 bitmaps are supported, unknown header: 1634038339!
+EVT_BACKGROUND
+suspend: saved to slot 99
+EVT_FOREGROUND
+EVT_BACKGROUND
+suspend: game cannot be saved right now (combat, event or no-save area)
+EVT_EXIT
+engine thread: scummvm_main returned 0
