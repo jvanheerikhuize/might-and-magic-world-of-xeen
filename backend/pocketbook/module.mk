@@ -2,6 +2,7 @@ MODULE := backends/platform/pocketbook
 
 MODULE_OBJS := \
 	gray-map.o \
+	layout.o \
 	refresh-policy.o \
 	keypad.o \
 	eink-graphics.o \

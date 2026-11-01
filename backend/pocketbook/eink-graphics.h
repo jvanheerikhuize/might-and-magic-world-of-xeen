@@ -23,7 +23,7 @@
 namespace PocketBook {
 
 // Keeps the game's 8-bit screen and ScummVM's RGB565 overlay in memory,
-// turns them into the 640x400 gray frame on updateScreen(), and hands only the
+// turns them into the gray frame (layout.h: 960x600 or 640x400) on updateScreen(), and hands only the
 // pixels that really changed to the platform (PLAN.md section 3).
 // The mouse cursor is not drawn: input is touch, so it would only cost refreshes.
 class EinkGraphicsManager : public GraphicsManager {
@@ -66,8 +66,8 @@ public:
 	void clearOverlay() override;
 	void grabOverlay(Graphics::Surface &surface) const override;
 	void copyRectToOverlay(const void *buf, int pitch, int x, int y, int w, int h) override;
-	int16 getOverlayHeight() const override { return kFrameH; }
-	int16 getOverlayWidth() const override { return kFrameW; }
+	int16 getOverlayHeight() const override { return _fh; }
+	int16 getOverlayWidth() const override { return _fw; }
 
 	bool showMouse(bool visible) override;
 	void warpMouse(int x, int y) override;
@@ -87,10 +87,11 @@ private:
 
 	Platform *_platform;
 	Graphics::Surface _screen;   // game, CLUT8
-	Graphics::Surface _overlay;  // ScummVM GUI, RGB565, kFrameW x kFrameH
+	const int _fw, _fh, _scale;  // frame size and game scale (layout())
+	Graphics::Surface _overlay;  // ScummVM GUI, RGB565, _fw x _fh
 	byte _palette[256 * 3];
 	PaletteLut _lut;
-	uint8_t *_frame;             // composed gray frame, kFrameW x kFrameH
+	uint8_t *_frame;             // composed gray frame, _fw x _fh
 	uint8_t *_shown;             // what the platform was last given
 	bool _overlayVisible = false;
 	bool _forceFull = true;

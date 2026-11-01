@@ -20,17 +20,19 @@
 //   MMIV_OUT      output directory for shots and present.log (default ".")
 //   MMIV_APPDIR   directory with mm.dat (default: the binary's directory)
 //   MMIV_TIMEOUT  hard stop in ms of wall time (default 120000)
+//   MMIV_LAYOUT   landscape (default), landscape-flip or portrait (layout.h)
 //
 // Script lines (# comments allowed):
 //   wait MS            let the engine run for MS milliseconds
 //   tap X Y            touch down+up at panel coordinates
-//   tapg X Y           touch at game coordinates (320x200; centre of the 2x pixel)
+//   tapg X Y           touch at game coordinates (320x200; centre of the scaled pixel)
 //   key NAME           key down+up: up down left right esc enter space tab
 //                      backspace f1..f12 or a single character
-//   shot NAME          write OUT/NAME.pgm (the 640x400 gray frame as last presented)
+//   shot NAME          write OUT/NAME.pgm (the gray frame as last presented: 960x600
+//                      in landscape, 640x400 in portrait)
 //   suspend / resume   app sent to / back from the background (suspend saves to slot 99)
 //   quit               send EVENT_QUIT
-// Taps below the game frame hit the touch keypad (keypad.cpp), as on the device.
+// Taps below the game frame hit the touch buttons (keypad.cpp), as on the device.
 
 #define FORBIDDEN_SYMBOL_ALLOW_ALL
 
@@ -109,7 +111,6 @@ public:
 		const char *s = getenv("MMIV_SCRIPT");
 		if (s)
 			loadScript(s);
-		memset(_frame, 0xff, sizeof(_frame));
 	}
 
 	~HostPlatform() override {
@@ -120,7 +121,7 @@ public:
 	}
 
 	void present(const uint8_t *frame, const Box &dirty) override {
-		memcpy(_frame, frame, sizeof(_frame));
+		memcpy(_frame.data(), frame, _frame.size());
 		_presents++;
 		long now = wallMs();
 		_policy.onFrame(dirty, now);
@@ -219,7 +220,8 @@ private:
 		if (sscanf(cmd.c_str(), "wait %d", &a) == 1) {
 			_due = now + a;
 		} else if (sscanf(cmd.c_str(), "tapg %d %d", &a, &b) == 2) {
-			touch(kFrameX + a * kScale + kScale / 2, kFrameY + b * kScale + kScale / 2);
+			const Layout &l = layout();
+			touch(l.frameX + a * l.scale + l.scale / 2, l.frameY + b * l.scale + l.scale / 2);
 		} else if (sscanf(cmd.c_str(), "tap %d %d", &a, &b) == 2) {
 			touch(a, b);
 		} else if (sscanf(cmd.c_str(), "key %63s", name) == 1) {
@@ -252,8 +254,8 @@ private:
 		FILE *f = fopen(path.c_str(), "wb");
 		if (!f)
 			return;
-		fprintf(f, "P5\n%d %d\n255\n", (int)kFrameW, (int)kFrameH);
-		fwrite(_frame, 1, sizeof(_frame), f);
+		fprintf(f, "P5\n%d %d\n255\n", layout().frameW, layout().frameH);
+		fwrite(_frame.data(), 1, _frame.size(), f);
 		fclose(f);
 		if (_presentLog) {
 			fprintf(_presentLog, "shot %s after %d presents\n", name, _presents);
@@ -266,10 +268,10 @@ private:
 	size_t _line = 0;
 	long _due = 0, _deadline = 0;
 	std::deque<Input> _queued;
-	uint8_t _frame[kFrameW * kFrameH];
+	std::vector<uint8_t> _frame = std::vector<uint8_t>(layout().frameW * layout().frameH, 0xff);
 	int _presents = 0, _partials = 0, _fulls = 0;
 	long _start = wallMs();
-	RefreshPolicy _policy{kFrameW, kFrameH};
+	RefreshPolicy _policy{layout().frameW, layout().frameH};
 	FILE *_presentLog = nullptr;
 };
 
@@ -284,6 +286,7 @@ Platform *platform() {
 } // namespace PocketBook
 
 int main(int argc, char *argv[]) {
+	PocketBook::setLayout(PocketBook::layoutModeFromName(getenv("MMIV_LAYOUT")));
 	PocketBook::g_platform = new PocketBook::HostPlatform(argv[0]);
 	g_system = new PocketBook::OSystem_PocketBook(PocketBook::g_platform);
 	int res = scummvm_main(argc, argv);

@@ -4,6 +4,7 @@
 
 #include "gray-map.h"
 #include "keypad.h"
+#include "layout.h"
 #include "pb-platform.h"
 #include "refresh-policy.h"
 
@@ -185,14 +186,17 @@ static const KeypadButton *byLabel(const char *label) {
 	return nullptr;
 }
 
-static void testKeypad() {
+// Every button inside the panel, below the frame, finger-sized, hit at its
+// centre, and no two overlapping.
+static void checkButtons(int expected) {
+	const Layout &l = layout();
 	int n;
 	const KeypadButton *bs = keypadButtons(n);
-	CHECK(n == 36);
-	CHECK(keypadTop() >= kFrameY + kFrameH);
+	CHECK(n == expected);
+	CHECK(keypadTop() >= l.frameY + l.frameH);
 	for (int i = 0; i < n; i++) {
 		const KeypadButton &b = bs[i];
-		CHECK(b.x >= 0 && b.y >= keypadTop() && b.x + b.w <= kPanelW && b.y + b.h <= kPanelH);
+		CHECK(b.x >= 0 && b.y >= keypadTop() && b.x + b.w <= l.panelW && b.y + b.h <= l.panelH);
 		CHECK(b.w >= 60 && b.h >= 60);  // >= ~7 mm at 212 ppi: finger-sized
 		CHECK(keypadHit(b.x + b.w / 2, b.y + b.h / 2) == &b);
 		for (int j = i + 1; j < n; j++) {
@@ -201,7 +205,34 @@ static void testKeypad() {
 			CHECK(!overlap);
 		}
 	}
-	CHECK(keypadHit(kFrameX + 10, kFrameY + 10) == nullptr);  // game area is not keypad
+	CHECK(keypadHit(l.frameX + 10, l.frameY + 10) == nullptr);  // game area is not keypad
+}
+
+static void testLayouts() {
+	CHECK(layoutModeFromName(nullptr) == Layout::kLandscape);
+	CHECK(layoutModeFromName("") == Layout::kLandscape);
+	CHECK(layoutModeFromName("bogus") == Layout::kLandscape);
+	CHECK(layoutModeFromName("portrait") == Layout::kPortrait);
+	CHECK(layoutModeFromName("landscape-flip") == Layout::kLandscapeFlip);
+	const Layout::Mode modes[] = {Layout::kLandscape, Layout::kLandscapeFlip, Layout::kPortrait};
+	for (Layout::Mode m : modes) {
+		setLayout(m);
+		const Layout &l = layout();
+		CHECK(l.mode == m);
+		CHECK(l.frameW == kGameW * l.scale && l.frameH == kGameH * l.scale);
+		CHECK(l.frameX >= 0 && l.frameY >= 0);
+		CHECK(l.frameX + l.frameW <= l.panelW && l.frameY + l.frameH <= l.panelH);
+		CHECK(l.frameW <= kMaxFrameW && l.frameH <= kMaxFrameH);
+		CHECK(l.landscape() == (l.panelW > l.panelH));
+	}
+	setLayout(Layout::kLandscape);
+	CHECK(layout().scale == 3 && layout().orientation == 1);
+	CHECK(layout().scale * 25 >= 75);  // Xeen's 25x21 icons: >= 75 px (~9 mm) wide
+}
+
+static void testKeypad() {
+	setLayout(Layout::kPortrait);
+	checkButtons(36);
 	// Key values must equal ScummVM's (common/keyboard.h, checked against v2026.4.0).
 	CHECK(byLabel("Fwd")->keycode == 273);      // KEYCODE_UP
 	CHECK(byLabel("Turn L")->keycode == 276);   // KEYCODE_LEFT
@@ -212,9 +243,20 @@ static void testKeypad() {
 	CHECK(byLabel("Esc")->keycode == 27);
 	CHECK(byLabel("Abc")->action == KeypadButton::kTextEntry);
 	CHECK(byLabel("ScummVM")->action == KeypadButton::kMainMenu);
+	CHECK(keypadTop() == 440);  // unchanged from Phase 3 (tests/host/keypad-and-suspend.txt)
+
+	setLayout(Layout::kLandscape);
+	checkButtons(7);
+	CHECK(byLabel("Fwd") == nullptr);  // movement is on Xeen's own arrows
+	CHECK(byLabel("Esc")->keycode == 27 && byLabel("Enter")->keycode == 13);
+	CHECK(byLabel("Wait")->keycode == 32 && byLabel("Yes")->ascii == 'y' && byLabel("No")->ascii == 'n');
+	CHECK(byLabel("Keyboard")->action == KeypadButton::kTextEntry);
+	CHECK(byLabel("ScummVM")->action == KeypadButton::kMainMenu);
+	CHECK(byLabel("Esc")->h >= 120);  // the whole strip height
 }
 
 int main() {
+	testLayouts();
 	testKeypad();
 	testPaperMapping();
 	testQuantizeAndDither();

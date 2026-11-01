@@ -6,7 +6,7 @@ CXXFLAGS := -std=c++11 -O1 -g -Wall -Wextra -Werror -I$(SRC)
 
 all: test
 
-SRCS := $(SRC)/gray-map.cpp $(SRC)/refresh-policy.cpp $(SRC)/keypad.cpp
+SRCS := $(SRC)/gray-map.cpp $(SRC)/layout.cpp $(SRC)/refresh-policy.cpp $(SRC)/keypad.cpp
 
 $(OUT)/test_backend: test_backend.cpp $(SRCS) $(wildcard $(SRC)/*.h)
 	@mkdir -p $(OUT)

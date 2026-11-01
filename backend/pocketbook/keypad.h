@@ -11,7 +11,8 @@
  * GNU General Public License for more details.
  */
 
-// The touch keypad under the game (PLAN.md section 4). Pure data + hit
+// The touch buttons under the game (PLAN.md section 4): the full keypad in
+// portrait, a strip of seven in landscape (layout.h). Pure data + hit
 // testing, no ScummVM or InkView headers, so it is unit-tested on the host and
 // shared by the OSystem (key events) and the InkView platform (drawing).
 // Key codes are ScummVM Common::KeyCode values; they equal ASCII for
@@ -34,7 +35,7 @@ struct KeypadButton {
 	uint8_t flags;       // Common::KBD_* modifiers
 };
 
-// All buttons, in drawing order.
+// All buttons of the current layout, in drawing order.
 const KeypadButton *keypadButtons(int &count);
 
 // The button under a panel point, or nullptr.

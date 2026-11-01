@@ -28,6 +28,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
 #include <time.h>
@@ -75,15 +76,18 @@ public:
 			_args.push_back(argv[i]);
 			logf("arg %d: %s\n", i, argv[i]);
 		}
-		memset(_frame, 0xff, sizeof(_frame));
+		const Layout &l = layout();
+		logf("layout %s: %dx%d frame at %d,%d (%dx), orientation %d\n", l.name, l.frameW, l.frameH, l.frameX,
+		     l.frameY, l.scale, l.orientation);
 	}
 
 	// ---- engine thread ----
 
 	void present(const uint8_t *frame, const Box &dirty) override {
 		std::lock_guard<std::mutex> lk(_mu);
+		const int w = layout().frameW;
 		for (int y = dirty.top; y < dirty.bottom; y++)
-			memcpy(_frame + y * kFrameW + dirty.left, frame + y * kFrameW + dirty.left, dirty.right - dirty.left);
+			memcpy(&_frame[y * w + dirty.left], frame + y * w + dirty.left, dirty.right - dirty.left);
 		_policy.onFrame(dirty, nowMs());
 	}
 
@@ -132,6 +136,7 @@ public:
 	}
 
 	void poll() {
+		const Layout &l = layout();
 		RefreshOp op;
 		bool done;
 		{
@@ -139,7 +144,8 @@ public:
 			op = _policy.poll(nowMs());
 			done = _engineDone;
 			if (op.kind != RefreshOp::kNone)
-				Stretch(_frame, IMAGE_GRAY8, kFrameW, kFrameH, kFrameW, kFrameX, kFrameY, kFrameW, kFrameH, ROTATE0);
+				Stretch(_frame.data(), IMAGE_GRAY8, l.frameW, l.frameH, l.frameW, l.frameX, l.frameY, l.frameW, l.frameH,
+				        ROTATE0);
 		}
 		// The panel update itself (hundreds of ms) runs outside the lock.
 		long t0 = nowMs();
@@ -148,7 +154,7 @@ public:
 			_stats.fulls++;
 			_stats.fullMs += nowMs() - t0;
 		} else if (op.kind == RefreshOp::kPartial) {
-			PartialUpdate(kFrameX + op.box.left, kFrameY + op.box.top, op.box.right - op.box.left,
+			PartialUpdate(l.frameX + op.box.left, l.frameY + op.box.top, op.box.right - op.box.left,
 			              op.box.bottom - op.box.top);
 			_stats.partials++;
 			_stats.partialMs += nowMs() - t0;
@@ -174,7 +180,29 @@ public:
 		_stats = PanelStats();
 	}
 
+	// Landscape is set per app; the firmware may restore its own orientation
+	// when the app returns from the background or the keyboard.
+	void applyOrientation() {
+		const Layout &l = layout();
+		if (GetOrientation() != l.orientation)
+			SetOrientation(l.orientation);
+		if (ScreenWidth() != l.panelW || ScreenHeight() != l.panelH)
+			logf("WARNING: screen %dx%d after SetOrientation(%d), layout expects %dx%d\n", ScreenWidth(),
+			     ScreenHeight(), l.orientation, l.panelW, l.panelH);
+	}
+
+	// The first touches, to check on the reader that touch coordinates follow
+	// the rotation (the game and the buttons depend on it).
+	void logTouch(int x, int y) {
+		if (_touchesLogged < 5) {
+			_touchesLogged++;
+			logf("touch %d,%d\n", x, y);
+		}
+	}
+
 	void resumed() {
+		applyOrientation();
+		ClearScreen();
 		drawKeypad();
 		std::lock_guard<std::mutex> lk(_mu);
 		_policy.forceFull(nowMs());
@@ -275,8 +303,9 @@ private:
 	FILE *_log = nullptr;
 	std::mutex _mu, _logMu;
 	std::deque<Input> _input;
-	uint8_t _frame[kFrameW * kFrameH];
-	RefreshPolicy _policy{kFrameW, kFrameH};
+	std::vector<uint8_t> _frame = std::vector<uint8_t>(layout().frameW * layout().frameH, 0xff);
+	RefreshPolicy _policy{layout().frameW, layout().frameH};
+	int _touchesLogged = 0;
 	bool _engineDone = false;
 	std::thread _engine;
 	ifont *_font = nullptr;
@@ -301,7 +330,7 @@ void InkViewPlatform::keyboardThunk(char *s) {
 
 // Hardware buttons: PREV/NEXT step forward/back (page-turn buttons are the
 // quickest way to walk), MENU and BACK are Escape. Everything else is on the
-// touch keypad (keypad.cpp).
+// touch buttons (keypad.cpp) or, in landscape, on the game's own icons.
 bool mapKey(int ivKey, int &code, uint16_t &ascii) {
 	switch (ivKey) {
 	case IV_KEY_PREV: code = Common::KEYCODE_UP; ascii = 0; return true;
@@ -317,7 +346,8 @@ int handler(int type, int p1, int p2) {
 	Input in;
 	switch (type) {
 	case EVT_INIT:
-		pf->logf("EVT_INIT screen %dx%d\n", ScreenWidth(), ScreenHeight());
+		pf->applyOrientation();
+		pf->logf("EVT_INIT screen %dx%d orientation %d\n", ScreenWidth(), ScreenHeight(), GetOrientation());
 		ClearScreen();
 		pf->drawKeypad();
 		FullUpdate();
@@ -329,11 +359,14 @@ int handler(int type, int p1, int p2) {
 		in.type = type == EVT_POINTERDOWN ? Input::kTouchDown : Input::kTouchUp;
 		in.x = p1;
 		in.y = p2;
-		if (type == EVT_POINTERDOWN && p2 >= keypadTop())
-			pf->keypadDown(p1, p2);
-		else if (type == EVT_POINTERUP)
+		if (type == EVT_POINTERDOWN) {
+			pf->logTouch(p1, p2);
+			if (keypadHit(p1, p2))
+				pf->keypadDown(p1, p2);
+		} else {
 			pf->keypadUp();
-		pf->push(in);  // the OSystem turns keypad taps into keys (keypad.cpp)
+		}
+		pf->push(in);  // the OSystem turns button taps into keys (keypad.cpp)
 		break;
 	case EVT_KEYPRESS:
 	case EVT_KEYRELEASE: {
@@ -356,6 +389,8 @@ int handler(int type, int p1, int p2) {
 		pf->push(in);
 		pf->resumed();
 		break;
+	case EVT_ORIENTATION:
+		return 1;  // keep our orientation; ignore the g-sensor
 	case EVT_EXIT:
 		pf->logf("EVT_EXIT\n");
 		pf->logStats();
@@ -374,6 +409,7 @@ Platform *platform() {
 } // namespace PocketBook
 
 int main(int argc, char *argv[]) {
+	PocketBook::setLayout(PocketBook::layoutModeFromName(getenv("MMIV_LAYOUT")));
 	PocketBook::g_platform = new PocketBook::InkViewPlatform();
 	PocketBook::g_platform->init(argc, argv);
 	g_system = new PocketBook::OSystem_PocketBook(PocketBook::g_platform);

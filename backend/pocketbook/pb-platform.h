@@ -19,18 +19,11 @@
 #define BACKENDS_PLATFORM_POCKETBOOK_PB_PLATFORM_H
 
 #include "gray-map.h"
+#include "layout.h"
 
 #include <stdint.h>
 
 namespace PocketBook {
-
-// Panel geometry (PB628 portrait, measured in Phase 1).
-enum {
-	kPanelW = 758, kPanelH = 1024,
-	kGameW = 320, kGameH = 200, kScale = 2,
-	kFrameW = kGameW * kScale, kFrameH = kGameH * kScale,  // 640x400 gray frame
-	kFrameX = (kPanelW - kFrameW) / 2, kFrameY = 24         // where it sits on the panel
-};
 
 struct Input {
 	enum Type { kNone, kTouchDown, kTouchUp, kKeyDown, kKeyUp, kQuit, kSuspend, kResume };
@@ -51,7 +44,7 @@ class Platform {
 public:
 	virtual ~Platform() {}
 	// Called on the engine thread after each updateScreen() that changed pixels.
-	// frame: kFrameW x kFrameH gray bytes; dirty: changed area in frame coordinates.
+	// frame: layout().frameW x frameH gray bytes; dirty: changed area in frame coordinates.
 	virtual void present(const uint8_t *frame, const Box &dirty) = 0;
 	// Called on the engine thread from pollEvent(); returns false when no input.
 	virtual bool pollInput(Input &in) = 0;

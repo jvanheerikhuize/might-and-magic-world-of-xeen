@@ -12,7 +12,7 @@
  */
 
 #include "keypad.h"
-#include "pb-platform.h"
+#include "layout.h"
 
 namespace PocketBook {
 
@@ -34,12 +34,14 @@ enum {
 const int kGap = 8;
 const int kRowH = 88;
 const int kMargin = 16;
-const int kTop = kFrameY + kFrameH + 16;  // 440
 
-int rowY(int row) { return kTop + row * (kRowH + kGap); }
+int g_top = 0;  // top of the button area: 16 px under the frame
+
+int rowY(int row) { return g_top + row * (kRowH + kGap); }
 
 KeypadButton g_buttons[64];
 int g_count = 0;
+int g_builtFor = -1;  // layout mode the buttons were built for
 
 void add(int x, int y, int w, int h, const char *label, KeypadButton::Action a, int key, uint16_t ascii,
          uint8_t flags = 0) {
@@ -53,11 +55,43 @@ void row(int r, int x0, int x1, int n, int i, const char *label, KeypadButton::A
 	add(x0 + i * (w + kGap), rowY(r), w, kRowH, label, a, key, ascii, flags);
 }
 
-void build() {
-	if (g_count)
-		return;
+// Landscape: the game's own icons are big enough to tap at 3x, so only what
+// has no icon in Xeen: closing (Esc/Enter), waiting, yes/no prompts, typing,
+// and the ScummVM menu. One row of large buttons in the strip under the game.
+void buildLandscape() {
 	const KeypadButton::Action K = KeypadButton::kKey;
-	const int L = kMargin, R = kPanelW - kMargin;
+	const Layout &l = layout();
+	const int L = kMargin, R = l.panelW - kMargin;
+	const int h = l.panelH - g_top - 8;
+	const int n = 7;
+	const int w = (R - L - (n - 1) * kGap) / n;
+	int i = 0;
+	auto strip = [&](const char *label, KeypadButton::Action a, int key, uint16_t ascii) {
+		add(L + i++ * (w + kGap), g_top, w, h, label, a, key, ascii);
+	};
+	strip("Esc", K, kEscape, 27);
+	strip("Enter", K, kReturn, 13);
+	strip("Wait", K, kSpace, ' ');
+	strip("Yes", K, 'y', 'y');
+	strip("No", K, 'n', 'n');
+	strip("Keyboard", KeypadButton::kTextEntry, 0, 0);
+	strip("ScummVM", KeypadButton::kMainMenu, 0, 0);
+}
+
+void build() {
+	const Layout &l = layout();
+	if (g_builtFor == (int)l.mode)
+		return;
+	g_builtFor = l.mode;
+	g_count = 0;
+	g_top = l.frameY + l.frameH + 12;
+	if (l.landscape()) {
+		buildLandscape();
+		return;
+	}
+	g_top = l.frameY + l.frameH + 16;  // 440, as in Phase 3
+	const KeypadButton::Action K = KeypadButton::kKey;
+	const int L = kMargin, R = l.panelW - kMargin;
 	const int split = 368;  // movement pad | commands
 
 	// Rows 0-1: movement pad (left), exploring commands (right).
@@ -123,7 +157,8 @@ const KeypadButton *keypadHit(int px, int py) {
 }
 
 int keypadTop() {
-	return kTop;
+	build();
+	return g_top;
 }
 
 } // namespace PocketBook

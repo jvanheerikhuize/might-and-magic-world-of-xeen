@@ -21,14 +21,15 @@
 
 namespace PocketBook {
 
-EinkGraphicsManager::EinkGraphicsManager(Platform *platform) : _platform(platform) {
+EinkGraphicsManager::EinkGraphicsManager(Platform *platform)
+	: _platform(platform), _fw(layout().frameW), _fh(layout().frameH), _scale(layout().scale) {
 	memset(_palette, 0, sizeof(_palette));
 	_screen.create(kGameW, kGameH, Graphics::PixelFormat::createFormatCLUT8());
-	_overlay.create(kFrameW, kFrameH, getOverlayFormat());
-	_frame = new uint8_t[kFrameW * kFrameH];
-	_shown = new uint8_t[kFrameW * kFrameH];
-	memset(_frame, 0xff, kFrameW * kFrameH);
-	memset(_shown, 0xff, kFrameW * kFrameH);
+	_overlay.create(_fw, _fh, getOverlayFormat());
+	_frame = new uint8_t[_fw * _fh];
+	_shown = new uint8_t[_fw * _fh];
+	memset(_frame, 0xff, _fw * _fh);
+	memset(_shown, 0xff, _fw * _fh);
 }
 
 EinkGraphicsManager::~EinkGraphicsManager() {
@@ -66,7 +67,7 @@ OSystem::TransactionError EinkGraphicsManager::endGFXTransaction() {
 	int err = OSystem::kTransactionSuccess;
 	if (!_pendingFormatOk)
 		err |= OSystem::kTransactionFormatNotSupported;
-	// Only 320x200 fits the 2x frame; that is what Xeen uses.
+	// Only 320x200 fits the frame at an integer scale; that is what Xeen uses.
 	if (_pendingW != kGameW || _pendingH != kGameH)
 		err |= OSystem::kTransactionSizeChangeFailed;
 	if (err == OSystem::kTransactionSuccess && (_screen.w != (int)_pendingW || _screen.h != (int)_pendingH)) {
@@ -131,21 +132,21 @@ Graphics::PixelFormat EinkGraphicsManager::getOverlayFormat() const {
 void EinkGraphicsManager::clearOverlay() {
 	// The GUI expects the game screen as the overlay background.
 	const Graphics::PixelFormat fmt = getOverlayFormat();
-	for (int y = 0; y < kFrameH; y++) {
+	for (int y = 0; y < _fh; y++) {
 		uint16 *dst = (uint16 *)_overlay.getBasePtr(0, y);
-		const byte *src = (const byte *)_screen.getBasePtr(0, y / kScale);
-		for (int x = 0; x < kFrameW; x++) {
-			const byte *c = _palette + 3 * src[x / kScale];
+		const byte *src = (const byte *)_screen.getBasePtr(0, y / _scale);
+		for (int x = 0; x < _fw; x++) {
+			const byte *c = _palette + 3 * src[x / _scale];
 			dst[x] = fmt.RGBToColor(c[0], c[1], c[2]);
 		}
 	}
 }
 
 void EinkGraphicsManager::grabOverlay(Graphics::Surface &surface) const {
-	assert(surface.w >= kFrameW && surface.h >= kFrameH);
+	assert(surface.w >= _fw && surface.h >= _fh);
 	assert(surface.format.bytesPerPixel == 2);
-	for (int y = 0; y < kFrameH; y++)
-		memcpy(surface.getBasePtr(0, y), _overlay.getBasePtr(0, y), kFrameW * 2);
+	for (int y = 0; y < _fh; y++)
+		memcpy(surface.getBasePtr(0, y), _overlay.getBasePtr(0, y), _fw * 2);
 }
 
 void EinkGraphicsManager::copyRectToOverlay(const void *buf, int pitch, int x, int y, int w, int h) {
@@ -162,43 +163,46 @@ void EinkGraphicsManager::warpMouse(int x, int y) {
 }
 
 bool EinkGraphicsManager::panelToScreen(int px, int py, int &x, int &y) const {
-	int fx = px - kFrameX, fy = py - kFrameY;
-	if (fx < 0 || fy < 0 || fx >= kFrameW || fy >= kFrameH)
+	int fx = px - layout().frameX, fy = py - layout().frameY;
+	if (fx < 0 || fy < 0 || fx >= _fw || fy >= _fh)
 		return false;
 	if (_overlayVisible) {
 		x = fx;
 		y = fy;
 	} else {
-		x = fx / kScale;
-		y = fy / kScale;
+		x = fx / _scale;
+		y = fy / _scale;
 	}
 	return true;
 }
 
 void EinkGraphicsManager::compose(uint8_t *out) const {
 	if (_overlayVisible) {
-		for (int y = 0; y < kFrameH; y++) {
+		for (int y = 0; y < _fh; y++) {
 			const uint16 *src = (const uint16 *)_overlay.getBasePtr(0, y);
-			uint8_t *dst = out + y * kFrameW;
-			for (int x = 0; x < kFrameW; x++)
+			uint8_t *dst = out + y * _fw;
+			for (int x = 0; x < _fw; x++)
 				dst[x] = gray565(src[x]);
 		}
 		return;
 	}
-	// Game: dither at game resolution (as previewed in Phase 0), then 2x.
+	// Game: dither at game resolution (as previewed in Phase 0), then scale.
 	for (int gy = 0; gy < kGameH; gy++) {
 		int sy = gy - _shakeY;
-		uint8_t *row = out + gy * kScale * kFrameW;
+		uint8_t *row = out + gy * _scale * _fw;
 		if (sy < 0 || sy >= _screen.h) {
-			memset(row, 0, kFrameW * kScale);
+			memset(row, 0, _fw * _scale);
 			continue;
 		}
 		const byte *src = (const byte *)_screen.getBasePtr(0, sy);
+		uint8_t *dst = row;
 		for (int gx = 0; gx < kGameW; gx++) {
 			uint8_t v = _lut.lookup(src[gx], bayerCell(gx, gy));
-			row[gx * 2] = row[gx * 2 + 1] = v;
+			for (int i = 0; i < _scale; i++)
+				*dst++ = v;
 		}
-		memcpy(row + kFrameW, row, kFrameW);
+		for (int i = 1; i < _scale; i++)
+			memcpy(row + i * _fw, row, _fw);
 	}
 }
 
@@ -206,15 +210,15 @@ void EinkGraphicsManager::updateScreen() {
 	compose(_frame);
 	Box dirty;
 	if (_forceFull) {
-		dirty.right = kFrameW;
-		dirty.bottom = kFrameH;
+		dirty.right = _fw;
+		dirty.bottom = _fh;
 		_forceFull = false;
 	} else {
-		dirty = diffBox(_frame, _shown, kFrameW, kFrameH);
+		dirty = diffBox(_frame, _shown, _fw, _fh);
 	}
 	if (dirty.empty())
 		return;
-	memcpy(_shown, _frame, kFrameW * kFrameH);
+	memcpy(_shown, _frame, _fw * _fh);
 	_platform->present(_frame, dirty);
 }
 
