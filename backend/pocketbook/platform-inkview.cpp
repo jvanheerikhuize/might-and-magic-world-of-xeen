@@ -76,6 +76,16 @@ public:
 			_args.push_back(argv[i]);
 			logf("arg %d: %s\n", i, argv[i]);
 		}
+		// The PB628 has no speaker, jack or Bluetooth; record what the system has.
+		FILE *cards = fopen("/proc/asound/cards", "r");
+		char card[128] = "";
+		if (cards) {
+			if (!fgets(card, sizeof card, cards))
+				card[0] = 0;
+			fclose(cards);
+		}
+		logf("audio: /dev/snd %s, /proc/asound/cards: %s\n", access("/dev/snd", F_OK) == 0 ? "present" : "absent",
+		     card[0] ? card : "(none)\n");
 		const Layout &l = layout();
 		logf("layout %s: %dx%d frame at %d,%d (%dx), orientation %d\n", l.name, l.frameW, l.frameH, l.frameX,
 		     l.frameY, l.scale, l.orientation);
@@ -125,6 +135,12 @@ public:
 		_engineDone = true;
 	}
 
+	// Engine thread; the keyboard is opened by poll() on the main thread.
+	void textInput(bool on) override {
+		std::lock_guard<std::mutex> lk(_mu);
+		_wantKeyboard = on;
+	}
+
 	// ---- main (InkView) thread ----
 
 	void startEngine() {
@@ -143,14 +159,44 @@ public:
 	void push(const Input &in) {
 		std::lock_guard<std::mutex> lk(_mu);
 		_input.push_back(in);
+		if (in.type == Input::kTouchDown || in.type == Input::kKeyDown || in.type == Input::kMainMenu)
+			_policy.onInput(nowMs());
+	}
+
+	void pushKey(int code, uint16_t ascii) {
+		Input in;
+		in.keycode = code;
+		in.ascii = ascii;
+		in.type = Input::kKeyDown;
+		push(in);
+		in.type = Input::kKeyUp;
+		push(in);
+	}
+
+	// MENU: a short press is Escape, holding it opens the ScummVM menu.
+	void menuKey(int type) {
+		if (type == EVT_KEYPRESS) {
+			_menuDownAt = nowMs();
+			_menuDone = false;
+		} else if (!_menuDone && (type == EVT_KEYREPEAT || nowMs() - _menuDownAt >= kLongPressMs)) {
+			_menuDone = true;
+			Input in;
+			in.type = Input::kMainMenu;
+			push(in);
+			logf("MENU held: ScummVM menu\n");
+		} else if (type == EVT_KEYRELEASE && !_menuDone) {
+			_menuDone = true;
+			pushKey(Common::KEYCODE_ESCAPE, 27);
+		}
 	}
 
 	void poll() {
 		const Layout &l = layout();
 		RefreshOp op;
-		bool done;
+		bool done, keyboard;
 		{
 			std::lock_guard<std::mutex> lk(_mu);
+			keyboard = _wantKeyboard && !_keyboardOpen;
 			op = _policy.poll(nowMs());
 			done = _engineDone;
 			if (op.kind != RefreshOp::kNone)
@@ -172,6 +218,10 @@ public:
 		}
 		if (nowMs() - _stats.since >= 60000)
 			logStats();
+		if (keyboard && !done) {
+			logf("keyboard: the game asks for text\n");
+			openKeyboard(true);
+		}
 		if (done) {
 			shutdown();
 			CloseApp();
@@ -221,6 +271,11 @@ public:
 	// ---- keypad (main thread) ----
 
 	void drawKeypad() {
+		if (layout().landscape()) {
+			// Nothing but the game: black around it (the frame is drawn over this).
+			FillArea(0, 0, ScreenWidth(), ScreenHeight(), BLACK);
+			return;
+		}
 		if (!_font)
 			_font = OpenFont(DEFAULTFONTB, 24, 1);
 		int n;
@@ -244,7 +299,7 @@ public:
 		InvertArea(b->x + 2, b->y + 2, b->w - 4, b->h - 4);
 		PartialUpdate(b->x, b->y, b->w, b->h);
 		if (b->action == KeypadButton::kTextEntry)
-			openKeyboard();
+			openKeyboard(false);
 	}
 
 	void keypadUp() {
@@ -256,26 +311,35 @@ public:
 		PartialUpdate(b->x, b->y, b->w, b->h);
 	}
 
-	void openKeyboard() {
+	// automatic: the game asked for text (mirror, riddle, name, amount), so the
+	// answer is completed with Enter, or cancelled with Escape. Otherwise (the
+	// keypad's Abc button) the text is just typed.
+	void openKeyboard(bool automatic) {
 		_held = nullptr;  // the keyboard covers the screen; we redraw on return
+		_keyboardOpen = true;
+		_keyboardAuto = automatic;
 		memset(_text, 0, sizeof(_text));
-		OpenKeyboard("Text for the game", _text, sizeof(_text) - 1, 0, keyboardThunk);
+		OpenKeyboard(automatic ? "Answer" : "Text for the game", _text, sizeof(_text) - 1, 0, keyboardThunk);
 	}
 
 	// Typed text goes to the game as key presses (names, riddles, passwords).
 	void keyboardDone(char *s) {
 		if (s) {
 			for (const char *p = s; *p; p++) {
-				Input in;
 				char c = *p;
-				in.keycode = (c >= 'A' && c <= 'Z') ? c - 'A' + 'a' : (unsigned char)c;
-				in.ascii = (unsigned char)c;
-				in.type = Input::kKeyDown;
-				push(in);
-				in.type = Input::kKeyUp;
-				push(in);
+				pushKey((c >= 'A' && c <= 'Z') ? c - 'A' + 'a' : (unsigned char)c, (unsigned char)c);
 			}
-			logf("keyboard: sent %d characters\n", (int)strlen(s));
+			if (_keyboardAuto)
+				pushKey(Common::KEYCODE_RETURN, 13);
+			logf("keyboard: sent %d characters%s\n", (int)strlen(s), _keyboardAuto ? " + Enter" : "");
+		} else if (_keyboardAuto) {
+			pushKey(Common::KEYCODE_ESCAPE, 27);
+			logf("keyboard: cancelled, sent Escape\n");
+		}
+		{
+			std::lock_guard<std::mutex> lk(_mu);
+			_keyboardOpen = false;
+			_wantKeyboard = false;  // the engine asks again for the next prompt
 		}
 		resumed();
 	}
@@ -318,6 +382,10 @@ private:
 	std::vector<uint8_t> _frame = std::vector<uint8_t>(layout().frameW * layout().frameH, 0xff);
 	RefreshPolicy _policy{layout().frameW, layout().frameH};
 	int _touchesLogged = 0;
+	bool _wantKeyboard = false, _keyboardOpen = false, _keyboardAuto = false;
+	long _menuDownAt = 0;
+	bool _menuDone = true;
+	enum { kLongPressMs = 700 };
 	bool _engineDone = false;
 	std::thread _engine;
 	ifont *_font = nullptr;
@@ -341,13 +409,13 @@ void InkViewPlatform::keyboardThunk(char *s) {
 }
 
 // Hardware buttons: PREV/NEXT step forward/back (page-turn buttons are the
-// quickest way to walk), MENU and BACK are Escape. Everything else is on the
+// quickest way to walk), BACK is Escape, MENU is Escape on a short press and
+// the ScummVM menu when held (InkViewPlatform::menuKey). Everything else is on the
 // touch buttons (keypad.cpp) or, in landscape, on the game's own icons.
 bool mapKey(int ivKey, int &code, uint16_t &ascii) {
 	switch (ivKey) {
 	case IV_KEY_PREV: code = Common::KEYCODE_UP; ascii = 0; return true;
 	case IV_KEY_NEXT: code = Common::KEYCODE_DOWN; ascii = 0; return true;
-	case IV_KEY_MENU:
 	case IV_KEY_BACK: code = Common::KEYCODE_ESCAPE; ascii = 27; return true;
 	default: return false;
 	}
@@ -381,7 +449,14 @@ int handler(int type, int p1, int p2) {
 		pf->push(in);  // the OSystem turns button taps into keys (keypad.cpp)
 		break;
 	case EVT_KEYPRESS:
+	case EVT_KEYREPEAT:
 	case EVT_KEYRELEASE: {
+		if (p1 == IV_KEY_MENU) {
+			pf->menuKey(type);
+			break;
+		}
+		if (type == EVT_KEYREPEAT)
+			break;
 		uint16_t ascii = 0;
 		if (mapKey(p1, in.keycode, ascii)) {
 			in.type = type == EVT_KEYPRESS ? Input::kKeyDown : Input::kKeyUp;

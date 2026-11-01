@@ -29,8 +29,12 @@
 //   key NAME           key down+up: up down left right esc enter space tab
 //                      backspace f1..f12 or a single character
 //   shot NAME          write OUT/NAME.pgm (the gray frame as last presented: 960x600
-//                      in landscape, 640x400 in portrait)
+//                      in landscape, 640x400 in portrait) and OUT/NAME.rgb.ppm (the
+//                      game's 320x200 screen in its own colours, for tuning the mapping)
 //   suspend / resume   app sent to / back from the background (suspend saves to slot 99)
+//   menu               open the ScummVM menu (MENU held on the reader)
+//   answer TEXT        type TEXT + Enter, as the reader's keyboard does when
+//                      the game asks for text (logged as "text input on")
 //   quit               send EVENT_QUIT
 // Taps below the game frame hit the touch buttons (keypad.cpp), as on the device.
 
@@ -41,6 +45,8 @@
 
 #include "base/main.h"
 #include "common/keyboard.h"
+#include "graphics/paletteman.h"
+#include "graphics/surface.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -154,6 +160,8 @@ public:
 		if (!_queued.empty()) {
 			in = _queued.front();
 			_queued.pop_front();
+			if (in.type == Input::kTouchDown || in.type == Input::kKeyDown || in.type == Input::kMainMenu)
+				_policy.onInput(wallMs());
 			return true;
 		}
 		long now = wallMs();
@@ -174,6 +182,14 @@ public:
 
 	void log(const char *message) override {
 		fputs(message, stderr);
+	}
+
+	void textInput(bool on) override {
+		fprintf(stderr, "text input %s\n", on ? "on" : "off");
+		if (_presentLog) {
+			fprintf(_presentLog, "%6ld text input %s\n", wallMs() - _start, on ? "on" : "off");
+			fflush(_presentLog);
+		}
 	}
 
 	void engineFinished() override {
@@ -201,6 +217,16 @@ private:
 				_script.push_back(s.substr(b));
 		}
 		fclose(f);
+	}
+
+	void queueKey(int code, uint16_t ascii) {
+		Input k;
+		k.keycode = code;
+		k.ascii = ascii;
+		k.type = Input::kKeyDown;
+		_queued.push_back(k);
+		k.type = Input::kKeyUp;
+		_queued.push_back(k);
 	}
 
 	void touch(int x, int y) {
@@ -236,6 +262,14 @@ private:
 			_queued.push_back(k);
 			k.type = Input::kKeyUp;
 			_queued.push_back(k);
+		} else if (cmd.compare(0, 7, "answer ") == 0) {
+			for (char c : cmd.substr(7))
+				queueKey(c >= 'A' && c <= 'Z' ? c - 'A' + 'a' : (unsigned char)c, (unsigned char)c);
+			queueKey(Common::KEYCODE_RETURN, 13);
+		} else if (cmd == "menu") {
+			Input m;
+			m.type = Input::kMainMenu;
+			_queued.push_back(m);
 		} else if (sscanf(cmd.c_str(), "shot %63s", name) == 1) {
 			writePgm(name);
 		} else if (cmd == "quit" || cmd == "suspend" || cmd == "resume") {
@@ -257,10 +291,27 @@ private:
 		fprintf(f, "P5\n%d %d\n255\n", layout().frameW, layout().frameH);
 		fwrite(_frame.data(), 1, _frame.size(), f);
 		fclose(f);
+		writeRgb((_out + "/" + name + ".rgb.ppm").c_str());
 		if (_presentLog) {
 			fprintf(_presentLog, "shot %s after %d presents\n", name, _presents);
 			fflush(_presentLog);
 		}
+	}
+
+	// The host runs ScummVM on this thread, so the game screen can be read here.
+	void writeRgb(const char *path) {
+		Graphics::Surface *scr = g_system->lockScreen();
+		byte pal[256 * 3];
+		g_system->getPaletteManager()->grabPalette(pal, 0, 256);
+		FILE *f = fopen(path, "wb");
+		if (f) {
+			fprintf(f, "P6\n%d %d\n255\n", scr->w, scr->h);
+			for (int y = 0; y < scr->h; y++)
+				for (int x = 0; x < scr->w; x++)
+					fwrite(pal + 3 * *(const byte *)scr->getBasePtr(x, y), 1, 3, f);
+			fclose(f);
+		}
+		g_system->unlockScreen();
 	}
 
 	std::string _appDir, _out;

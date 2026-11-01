@@ -34,6 +34,10 @@ public:
 	void initBackend() override;
 	bool pollEvent(Common::Event &event) override;
 
+	bool hasFeature(Feature f) override;
+	void setFeatureState(Feature f, bool enable) override;
+	bool getFeatureState(Feature f) override;
+
 	Common::MutexInternal *createMutex() override;
 	uint32 getMillis(bool skipRecord = false) override;
 	void delayMillis(uint msecs) override;
@@ -60,7 +64,7 @@ private:
 	timeval _startTime;
 	Common::Queue<Common::Event> _pending;
 	Common::Point _mouse;
-	bool _suspended = false, _suspendSaved = false, _saving = false;
+	bool _suspended = false, _suspendSaved = false, _saving = false, _textInput = false;
 	uint32 _lastSaveTry = 0, _lastSafetySave = 0, _safetySaveMs = kSafetySaveMs;
 };
 

@@ -1,0 +1,26 @@
+Xeen: open the virtual keyboard while typing text
+
+Input::getString (mirror, riddles, character names, amounts) switches
+OSystem::kFeatureVirtualKeyboard on while it waits for text, so a
+touch-only backend (mmIV PocketBook) can show its on-screen keyboard.
+Backends without the feature ignore the call.
+
+--- a/engines/mm/xeen/dialogs/dialogs_input.cpp
++++ b/engines/mm/xeen/dialogs/dialogs_input.cpp
+@@ -82,6 +82,8 @@
+ 	bool nonEnCharset = false;
+ 
+ 	_vm->_noDirectionSense = true;
++	// Let touch-only backends show an on-screen keyboard while typing.
++	g_system->setFeatureState(OSystem::kFeatureVirtualKeyboard, true);
+ 	Common::String msg = Common::String::format("\x3""l\t000\x4%03d\x3""c", maxWidth);
+ 	_window->writeString(msg, false);
+ 	_window->update();
+@@ -140,6 +142,7 @@
+ 		}
+ 	}
+ 
++	g_system->setFeatureState(OSystem::kFeatureVirtualKeyboard, false);
+ #ifdef USE_TTS
+ 	_vm->sayText(line, Common::TextToSpeechManager::INTERRUPT);
+ #endif

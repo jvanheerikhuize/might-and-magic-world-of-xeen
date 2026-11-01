@@ -19,12 +19,12 @@ namespace PocketBook {
 
 namespace {
 
-// PB628: 1024x758 panel (Phase 1). Landscape: 3x leaves 32 px either side
-// and 158 px below; the frame sits 4 px from the top, the button strip below.
+// PB628: 1024x758 panel (Phase 1). Landscape: 3x centred, black around it
+// (32 px left and right, 79 px above and below), no buttons.
 // Portrait: 2x centred, 24 px from the top as in Phase 2/3.
 const Layout kLayouts[] = {
-	{Layout::kLandscape, "landscape", 1, 1024, 758, 3, kGameW * 3, kGameH * 3, 32, 4},
-	{Layout::kLandscapeFlip, "landscape-flip", 2, 1024, 758, 3, kGameW * 3, kGameH * 3, 32, 4},
+	{Layout::kLandscape, "landscape", 1, 1024, 758, 3, kGameW * 3, kGameH * 3, 32, 79},
+	{Layout::kLandscapeFlip, "landscape-flip", 2, 1024, 758, 3, kGameW * 3, kGameH * 3, 32, 79},
 	{Layout::kPortrait, "portrait", 0, 758, 1024, 2, kGameW * 2, kGameH * 2, (758 - kGameW * 2) / 2, 24},
 };
 

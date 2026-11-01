@@ -15,9 +15,11 @@
 // set by the launcher) before anything else is created. Pure C++, no
 // ScummVM or InkView headers, so it is unit-tested on the host.
 //
-//   landscape (default)  panel 1024x758, game 3x = 960x600, a strip of large
-//                        buttons below. Xeen's own icons are ~9 mm at 3x, so
-//                        play is by tapping the game itself.
+//   landscape (default)  panel 1024x758, game 3x = 960x600 centred on black,
+//                        no buttons: Xeen's own icons are ~9 mm at 3x, so play
+//                        is by tapping the game itself. Esc and the ScummVM
+//                        menu are on the MENU key (short / long press), and
+//                        text prompts open the reader's keyboard.
 //   landscape-flip       the same, rotated the other way round.
 //   portrait             panel 758x1024, game 2x = 640x400, the 36-button
 //                        touch keypad below (keypad.cpp).

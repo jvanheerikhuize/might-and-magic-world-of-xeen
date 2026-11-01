@@ -11,8 +11,8 @@
  * GNU General Public License for more details.
  */
 
-// The touch buttons under the game (PLAN.md section 4): the full keypad in
-// portrait, a strip of seven in landscape (layout.h). Pure data + hit
+// The touch keypad under the game in the portrait layout (PLAN.md section 4).
+// The landscape layout has no buttons (layout.h). Pure data + hit
 // testing, no ScummVM or InkView headers, so it is unit-tested on the host and
 // shared by the OSystem (key events) and the InkView platform (drawing).
 // Key codes are ScummVM Common::KeyCode values; they equal ASCII for

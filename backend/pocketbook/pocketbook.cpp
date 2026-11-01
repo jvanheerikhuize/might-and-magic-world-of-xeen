@@ -54,6 +54,26 @@ void OSystem_PocketBook::initBackend() {
 	BaseBackend::initBackend();
 }
 
+// The virtual keyboard feature is how engines say "now typing text"; the
+// reader's own on-screen keyboard stands in for ScummVM's.
+bool OSystem_PocketBook::hasFeature(Feature f) {
+	return f == kFeatureVirtualKeyboard || ModularGraphicsBackend::hasFeature(f);
+}
+
+void OSystem_PocketBook::setFeatureState(Feature f, bool enable) {
+	if (f != kFeatureVirtualKeyboard) {
+		ModularGraphicsBackend::setFeatureState(f, enable);
+		return;
+	}
+	if (enable != _textInput)
+		_platform->textInput(enable);
+	_textInput = enable;
+}
+
+bool OSystem_PocketBook::getFeatureState(Feature f) {
+	return f == kFeatureVirtualKeyboard ? _textInput : ModularGraphicsBackend::getFeatureState(f);
+}
+
 EinkGraphicsManager *OSystem_PocketBook::eink() {
 	return static_cast<EinkGraphicsManager *>(_graphicsManager);
 }
@@ -91,6 +111,10 @@ void OSystem_PocketBook::translate(const Input &in) {
 		return;
 	case Input::kQuit:
 		ev.type = Common::EVENT_QUIT;
+		_pending.push(ev);
+		return;
+	case Input::kMainMenu:
+		ev.type = Common::EVENT_MAINMENU;
 		_pending.push(ev);
 		return;
 	case Input::kResume:

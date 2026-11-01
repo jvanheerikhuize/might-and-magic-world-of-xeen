@@ -55,40 +55,15 @@ void row(int r, int x0, int x1, int n, int i, const char *label, KeypadButton::A
 	add(x0 + i * (w + kGap), rowY(r), w, kRowH, label, a, key, ascii, flags);
 }
 
-// Landscape: the game's own icons are big enough to tap at 3x, so only what
-// has no icon in Xeen: closing (Esc/Enter), waiting, yes/no prompts, typing,
-// and the ScummVM menu. One row of large buttons in the strip under the game.
-void buildLandscape() {
-	const KeypadButton::Action K = KeypadButton::kKey;
-	const Layout &l = layout();
-	const int L = kMargin, R = l.panelW - kMargin;
-	const int h = l.panelH - g_top - 8;
-	const int n = 7;
-	const int w = (R - L - (n - 1) * kGap) / n;
-	int i = 0;
-	auto strip = [&](const char *label, KeypadButton::Action a, int key, uint16_t ascii) {
-		add(L + i++ * (w + kGap), g_top, w, h, label, a, key, ascii);
-	};
-	strip("Esc", K, kEscape, 27);
-	strip("Enter", K, kReturn, 13);
-	strip("Wait", K, kSpace, ' ');
-	strip("Yes", K, 'y', 'y');
-	strip("No", K, 'n', 'n');
-	strip("Keyboard", KeypadButton::kTextEntry, 0, 0);
-	strip("ScummVM", KeypadButton::kMainMenu, 0, 0);
-}
-
 void build() {
 	const Layout &l = layout();
 	if (g_builtFor == (int)l.mode)
 		return;
 	g_builtFor = l.mode;
 	g_count = 0;
-	g_top = l.frameY + l.frameH + 12;
-	if (l.landscape()) {
-		buildLandscape();
-		return;
-	}
+	g_top = l.panelH;
+	if (l.landscape())
+		return;  // no buttons: the game's own icons, MENU key, auto keyboard
 	g_top = l.frameY + l.frameH + 16;  // 440, as in Phase 3
 	const KeypadButton::Action K = KeypadButton::kKey;
 	const int L = kMargin, R = l.panelW - kMargin;

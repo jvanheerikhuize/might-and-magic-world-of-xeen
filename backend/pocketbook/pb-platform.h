@@ -26,7 +26,7 @@
 namespace PocketBook {
 
 struct Input {
-	enum Type { kNone, kTouchDown, kTouchUp, kKeyDown, kKeyUp, kQuit, kSuspend, kResume };
+	enum Type { kNone, kTouchDown, kTouchUp, kKeyDown, kKeyUp, kQuit, kSuspend, kResume, kMainMenu };
 	Type type = kNone;
 	int x = 0, y = 0;        // touch: panel coordinates
 	int keycode = 0;         // key: Common::KeyCode value
@@ -53,6 +53,10 @@ public:
 	virtual void log(const char *message) = 0;
 	// The engine asked to quit (OSystem::quit) or scummvm_main returned.
 	virtual void engineFinished() = 0;
+	// The game waits for typed text (Xeen's Input::getString, via
+	// kFeatureVirtualKeyboard): open the on-screen keyboard. The typed text
+	// comes back as key presses followed by Enter, or Escape if cancelled.
+	virtual void textInput(bool on) = 0;
 };
 
 Platform *platform();
