@@ -231,8 +231,37 @@ static void testLayouts() {
 		CHECK(l.frameW <= kMaxFrameW && l.frameH <= kMaxFrameH);
 		CHECK(l.landscape() == (l.panelW > l.panelH));
 	}
+	// Rotation for the portrait panel: every logical pixel of a rectangle
+	// lands inside its panel rectangle, touches map back, and the frame is
+	// centred on the physical panel too.
+	for (Layout::Mode m : modes) {
+		setLayout(m);
+		const Layout &l = layout();
+		CHECK(l.physW() == 758 && l.physH() == 1024);
+		const PanelRect r = {l.frameX + 5, l.frameY + 7, 40, 30};
+		PanelRect p = toPanel(l, r);
+		CHECK(p.w * p.h == r.w * r.h && p.x >= 0 && p.y >= 0 && p.x + p.w <= l.physW() && p.y + p.h <= l.physH());
+		bool inside = true, back = true;
+		for (int y = r.y; y < r.y + r.h; y++)
+			for (int x = r.x; x < r.x + r.w; x++) {
+				int off = panelOffset(l, x, y, l.physW());
+				int px = off % l.physW(), py = off / l.physW();
+				inside &= px >= p.x && px < p.x + p.w && py >= p.y && py < p.y + p.h;
+				int lx, ly;
+				fromPanel(l, px, py, lx, ly);
+				back &= lx == x && ly == y;
+			}
+		CHECK(inside && back);
+		PanelRect f = toPanel(l, {l.frameX, l.frameY, l.frameW, l.frameH});
+		CHECK(f.x == l.physW() - f.x - f.w || f.x + 1 == l.physW() - f.x - f.w);
+		CHECK(f.y == l.physH() - f.y - f.h || f.y + 1 == l.physH() - f.y - f.h || l.mode == Layout::kPortrait);
+	}
+	// Turned counter-clockwise: the game's top-left is the panel's top-right.
 	setLayout(Layout::kLandscape);
-	CHECK(layout().scale == 3 && layout().orientation == 1);
+	int ptx, pty;
+	fromPanel(layout(), 757, 0, ptx, pty);
+	CHECK(ptx == 0 && pty == 0);
+	CHECK(layout().scale == 3 && layout().orientation == 0 && layout().rotate == 1 && layout().keyboardOrientation == 1);
 	CHECK(layout().scale * 25 >= 75);  // Xeen's 25x21 icons: >= 75 px (~9 mm) wide
 }
 

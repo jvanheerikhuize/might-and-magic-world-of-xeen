@@ -87,8 +87,8 @@ public:
 		logf("audio: /dev/snd %s, /proc/asound/cards: %s\n", access("/dev/snd", F_OK) == 0 ? "present" : "absent",
 		     card[0] ? card : "(none)\n");
 		const Layout &l = layout();
-		logf("layout %s: %dx%d frame at %d,%d (%dx), orientation %d\n", l.name, l.frameW, l.frameH, l.frameX,
-		     l.frameY, l.scale, l.orientation);
+		logf("layout %s: %dx%d frame at %d,%d (%dx), orientation %d, rotate %d\n", l.name, l.frameW, l.frameH,
+		     l.frameX, l.frameY, l.scale, l.orientation, l.rotate);
 	}
 
 	// ---- engine thread ----
@@ -210,8 +210,9 @@ public:
 			_stats.fulls++;
 			_stats.fullMs += nowMs() - t0;
 		} else if (op.kind == RefreshOp::kPartial) {
-			PartialUpdate(l.frameX + op.box.left, l.frameY + op.box.top, op.box.right - op.box.left,
-			              op.box.bottom - op.box.top);
+			PanelRect r = toPanel(l, {l.frameX + op.box.left, l.frameY + op.box.top, op.box.right - op.box.left,
+			                          op.box.bottom - op.box.top});
+			PartialUpdate(r.x, r.y, r.w, r.h);
 			_stats.partials++;
 			_stats.partialMs += nowMs() - t0;
 			_stats.partialArea += _policy.areaPct(op.box);
@@ -246,30 +247,40 @@ public:
 		const Layout &l = layout();
 		if (GetOrientation() != l.orientation)
 			SetOrientation(l.orientation);
-		if (ScreenWidth() != l.panelW || ScreenHeight() != l.panelH)
+		if (ScreenWidth() != l.physW() || ScreenHeight() != l.physH())
 			logf("WARNING: screen %dx%d after SetOrientation(%d), layout expects %dx%d\n", ScreenWidth(),
-			     ScreenHeight(), l.orientation, l.panelW, l.panelH);
+			     ScreenHeight(), l.orientation, l.physW(), l.physH());
 	}
 
-	// Copy the gray frame into the canvas at (frameX, frameY). Direct when the
-	// canvas is the 8-bit logical screen; Stretch() otherwise. (Third landscape
-	// session: the game showed flush with the bottom-right corner although it
-	// was placed at 32,79 - checkStretch() logs where Stretch really draws.)
+	// Copy the gray frame into the canvas at (frameX, frameY), turned for the
+	// portrait panel in the landscape layouts (layout.h). Direct when the canvas
+	// is the 8-bit panel; Stretch() otherwise (no rotation then).
 	void blitFrame() {
 		const Layout &l = layout();
 		icanvas *cv = GetCanvas();
 		if (_directBlit) {
-			for (int y = 0; y < l.frameH; y++)
-				memcpy(cv->addr + (l.frameY + y) * cv->scanline + l.frameX, &_frame[y * l.frameW], l.frameW);
+			if (!l.rotate) {
+				for (int y = 0; y < l.frameH; y++)
+					memcpy(cv->addr + (l.frameY + y) * cv->scanline + l.frameX, &_frame[y * l.frameW], l.frameW);
+				return;
+			}
+			// One logical column per pass: a panel row, written in order.
+			const int step = l.rotate == 1 ? -1 : 1;
+			for (int x = 0; x < l.frameW; x++) {
+				uint8_t *dst = cv->addr + panelOffset(l, l.frameX + x, l.frameY, cv->scanline);
+				const uint8_t *src = &_frame[x];
+				for (int y = 0; y < l.frameH; y++, src += l.frameW, dst += step)
+					*dst = *src;
+			}
 			return;
 		}
 		Stretch(_frame.data(), IMAGE_GRAY8, l.frameW, l.frameH, l.frameW, l.frameX, l.frameY, l.frameW, l.frameH, ROTATE0);
 	}
 
-	// Main thread, at start-up (nothing on the panel changes): log the canvas,
-	// draw a white 8x8 block with Stretch at (100,100) on black, find where it
-	// landed, and choose direct copying when the canvas allows it.
-	void checkStretch() {
+	// Main thread, at start-up: log the canvas and choose direct copying when
+	// it is the 8-bit panel. (Fourth landscape session: Stretch drew where asked;
+	// the firmware's landscape mode moved the picture on the panel instead.)
+	void checkCanvas() {
 		const Layout &l = layout();
 		icanvas *cv = GetCanvas();
 		if (!cv || !cv->addr) {
@@ -277,25 +288,8 @@ public:
 			return;
 		}
 		logf("canvas: %dx%d scanline %d depth %d\n", cv->width, cv->height, cv->scanline, cv->depth);
-		if (cv->depth != 8)
-			return;
-		FillArea(0, 0, ScreenWidth(), ScreenHeight(), BLACK);
-		uint8_t block[64];
-		memset(block, 0xff, sizeof block);
-		Stretch(block, IMAGE_GRAY8, 8, 8, 8, 100, 100, 8, 8, ROTATE0);
-		int x0 = cv->width, y0 = cv->height, x1 = -1, y1 = -1;
-		for (int y = 0; y < cv->height; y++)
-			for (int x = 0; x < cv->width; x++)
-				if (cv->addr[y * cv->scanline + x] > 0x80) {
-					x0 = x < x0 ? x : x0;
-					y0 = y < y0 ? y : y0;
-					x1 = x > x1 ? x : x1;
-					y1 = y > y1 ? y : y1;
-				}
-		logf("canvas: Stretch at 100,100 drew %d,%d-%d,%d\n", x0, y0, x1, y1);
-		_directBlit = cv->width == l.panelW && cv->height == l.panelH;
+		_directBlit = cv->depth == 8 && cv->width == l.physW() && cv->height == l.physH();
 		logf("canvas: %s\n", _directBlit ? "copying the frame directly" : "size differs from the layout, using Stretch");
-		FillArea(0, 0, ScreenWidth(), ScreenHeight(), BLACK);
 	}
 
 	// The first touches, to check on the reader that touch coordinates follow
@@ -366,6 +360,9 @@ public:
 		_keyboardOpen = true;
 		_keyboardAuto = automatic;
 		memset(_text, 0, sizeof(_text));
+		// Upright for a reader held sideways; resumed() turns the panel back.
+		if (layout().keyboardOrientation != layout().orientation)
+			SetOrientation(layout().keyboardOrientation);
 		OpenKeyboard(automatic ? "Answer" : "Text for the game", _text, sizeof(_text) - 1, 0, keyboardThunk);
 	}
 
@@ -493,7 +490,7 @@ int handler(int type, int p1, int p2) {
 	case EVT_INIT:
 		pf->applyOrientation();
 		pf->logf("EVT_INIT screen %dx%d orientation %d\n", ScreenWidth(), ScreenHeight(), GetOrientation());
-		pf->checkStretch();
+		pf->checkCanvas();
 		ClearScreen();
 		pf->drawKeypad();
 		FullUpdate();
@@ -503,12 +500,11 @@ int handler(int type, int p1, int p2) {
 	case EVT_POINTERDOWN:
 	case EVT_POINTERUP:
 		in.type = type == EVT_POINTERDOWN ? Input::kTouchDown : Input::kTouchUp;
-		in.x = p1;
-		in.y = p2;
+		fromPanel(layout(), p1, p2, in.x, in.y);
 		if (type == EVT_POINTERDOWN) {
-			pf->logTouch(p1, p2);
-			if (keypadHit(p1, p2))
-				pf->keypadDown(p1, p2);
+			pf->logTouch(in.x, in.y);
+			if (keypadHit(in.x, in.y))
+				pf->keypadDown(in.x, in.y);
 		} else {
 			pf->keypadUp();
 		}
