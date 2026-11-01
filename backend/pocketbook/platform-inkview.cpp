@@ -201,8 +201,7 @@ public:
 			op = _policy.poll(nowMs());
 			done = _engineDone;
 			if (op.kind != RefreshOp::kNone)
-				Stretch(_frame.data(), IMAGE_GRAY8, l.frameW, l.frameH, l.frameW, l.frameX, l.frameY, l.frameW, l.frameH,
-				        ROTATE0);
+				blitFrame();
 		}
 		// The panel update itself (hundreds of ms) runs outside the lock.
 		long t0 = nowMs();
@@ -250,6 +249,53 @@ public:
 		if (ScreenWidth() != l.panelW || ScreenHeight() != l.panelH)
 			logf("WARNING: screen %dx%d after SetOrientation(%d), layout expects %dx%d\n", ScreenWidth(),
 			     ScreenHeight(), l.orientation, l.panelW, l.panelH);
+	}
+
+	// Copy the gray frame into the canvas at (frameX, frameY). Direct when the
+	// canvas is the 8-bit logical screen; Stretch() otherwise. (Third landscape
+	// session: the game showed flush with the bottom-right corner although it
+	// was placed at 32,79 - checkStretch() logs where Stretch really draws.)
+	void blitFrame() {
+		const Layout &l = layout();
+		icanvas *cv = GetCanvas();
+		if (_directBlit) {
+			for (int y = 0; y < l.frameH; y++)
+				memcpy(cv->addr + (l.frameY + y) * cv->scanline + l.frameX, &_frame[y * l.frameW], l.frameW);
+			return;
+		}
+		Stretch(_frame.data(), IMAGE_GRAY8, l.frameW, l.frameH, l.frameW, l.frameX, l.frameY, l.frameW, l.frameH, ROTATE0);
+	}
+
+	// Main thread, at start-up (nothing on the panel changes): log the canvas,
+	// draw a white 8x8 block with Stretch at (100,100) on black, find where it
+	// landed, and choose direct copying when the canvas allows it.
+	void checkStretch() {
+		const Layout &l = layout();
+		icanvas *cv = GetCanvas();
+		if (!cv || !cv->addr) {
+			logf("canvas: none, using Stretch\n");
+			return;
+		}
+		logf("canvas: %dx%d scanline %d depth %d\n", cv->width, cv->height, cv->scanline, cv->depth);
+		if (cv->depth != 8)
+			return;
+		FillArea(0, 0, ScreenWidth(), ScreenHeight(), BLACK);
+		uint8_t block[64];
+		memset(block, 0xff, sizeof block);
+		Stretch(block, IMAGE_GRAY8, 8, 8, 8, 100, 100, 8, 8, ROTATE0);
+		int x0 = cv->width, y0 = cv->height, x1 = -1, y1 = -1;
+		for (int y = 0; y < cv->height; y++)
+			for (int x = 0; x < cv->width; x++)
+				if (cv->addr[y * cv->scanline + x] > 0x80) {
+					x0 = x < x0 ? x : x0;
+					y0 = y < y0 ? y : y0;
+					x1 = x > x1 ? x : x1;
+					y1 = y > y1 ? y : y1;
+				}
+		logf("canvas: Stretch at 100,100 drew %d,%d-%d,%d\n", x0, y0, x1, y1);
+		_directBlit = cv->width == l.panelW && cv->height == l.panelH;
+		logf("canvas: %s\n", _directBlit ? "copying the frame directly" : "size differs from the layout, using Stretch");
+		FillArea(0, 0, ScreenWidth(), ScreenHeight(), BLACK);
 	}
 
 	// The first touches, to check on the reader that touch coordinates follow
@@ -390,6 +436,7 @@ private:
 	std::vector<uint8_t> _frame = std::vector<uint8_t>(layout().frameW * layout().frameH, 0xff);
 	RefreshPolicy _policy{layout().frameW, layout().frameH};
 	int _touchesLogged = 0;
+	bool _directBlit = false;
 	bool _wantKeyboard = false, _keyboardOpen = false, _keyboardAuto = false;
 	long _menuDownAt = 0;
 	bool _menuDone = true;
@@ -446,6 +493,7 @@ int handler(int type, int p1, int p2) {
 	case EVT_INIT:
 		pf->applyOrientation();
 		pf->logf("EVT_INIT screen %dx%d orientation %d\n", ScreenWidth(), ScreenHeight(), GetOrientation());
+		pf->checkStretch();
 		ClearScreen();
 		pf->drawKeypad();
 		FullUpdate();
