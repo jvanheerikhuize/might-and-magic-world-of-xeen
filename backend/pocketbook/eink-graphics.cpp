@@ -194,10 +194,10 @@ void EinkGraphicsManager::compose(uint8_t *out) const {
 			memset(row, 0, _fw * _scale);
 			continue;
 		}
-		const byte *src = (const byte *)_screen.getBasePtr(0, sy);
+		const byte *src = (const byte *)_screen.getPixels();
 		uint8_t *dst = row;
 		for (int gx = 0; gx < kGameW; gx++) {
-			uint8_t v = _lut.lookup(src[gx], bayerCell(gx, gy));
+			uint8_t v = mapPixel(_lut, src, _screen.pitch, _screen.w, _screen.h, gx, sy, bayerCell(gx, gy));
 			for (int i = 0; i < _scale; i++)
 				*dst++ = v;
 		}

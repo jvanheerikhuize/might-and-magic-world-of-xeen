@@ -26,7 +26,9 @@ rm -rf "$out"/*.pgm "$out"/*.png "$out"/present.log "$out"/saves
 mkdir -p "$out/saves"
 cp "${MMIV_SAVES_FROM:-$data/saves}"/* "$out/saves/" 2>/dev/null || true
 
-args=(--config="$out/scummvm.ini" --path="$data/scummvm/world-of-xeen" --savepath="$out/saves")
+# Same GUI theme as the reader bundle (light, readable on e-ink).
+args=(--config="$out/scummvm.ini" --path="$data/scummvm/world-of-xeen" --savepath="$out/saves"
+	--themepath="$root/scummvm/gui/themes" --gui-theme=scummmodern)
 [[ -n $slot ]] && args+=(--save-slot="$slot")
 
 set +e

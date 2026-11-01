@@ -66,6 +66,9 @@ public:
 	void clearOverlay() override;
 	void grabOverlay(Graphics::Surface &surface) const override;
 	void copyRectToOverlay(const void *buf, int pitch, int x, int y, int w, int h) override;
+	// The ScummVM GUI is laid out for 640x400 and scaled up to the frame, so
+	// its text is 1.5x larger in landscape instead of the same size on a wider page.
+	float getHiDPIScreenFactor() const override { return _scale / 2.0f; }
 	int16 getOverlayHeight() const override { return _fh; }
 	int16 getOverlayWidth() const override { return _fw; }
 

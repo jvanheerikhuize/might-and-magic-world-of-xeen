@@ -73,15 +73,44 @@ uint8_t quantize(float v, int bayerCell, bool dither) {
 
 PaletteLut::PaletteLut() {
 	memset(_lut, 0, sizeof(_lut));
+	memset(_plain, 0, sizeof(_plain));
+	memset(_conflict, 0, sizeof(_conflict));
+	memset(_dark, 1, sizeof(_dark));
 }
 
 void PaletteLut::update(const uint8_t *colors, unsigned start, unsigned num) {
+	GrayMapParams plainParams = _params;
+	plainParams.k = 0;
 	for (unsigned i = 0; i < num && start + i < 256; i++) {
 		const uint8_t *c = colors + 3 * i;
 		float v = mapColor(_params, c[0], c[1], c[2]);
-		for (int cell = 0; cell < kBayerCells; cell++)
+		float plain = mapColor(plainParams, c[0], c[1], c[2]);
+		for (int cell = 0; cell < kBayerCells; cell++) {
 			_lut[start + i][cell] = quantize(v, cell, _params.dither);
+			_plain[start + i][cell] = quantize(plain, cell, _params.dither);
+		}
+		_conflict[start + i] = plain - v >= 0.35f;
+		_dark[start + i] = v <= 0.2f && plain <= 0.4f;
 	}
+}
+
+uint8_t mapPixel(const PaletteLut &lut, const uint8_t *src, int pitch, int w, int h, int x, int y, int cell) {
+	uint8_t c = src[y * pitch + x];
+	if (!lut.conflict(c))
+		return lut.lookup(c, cell);
+	int dark = 0, other = 0;
+	for (int yy = y - 2; yy <= y + 2; yy++) {
+		if (yy < 0 || yy >= h)
+			continue;
+		const uint8_t *row = src + yy * pitch;
+		for (int xx = x - 2; xx <= x + 2; xx++) {
+			if (xx < 0 || xx >= w || lut.conflict(row[xx]))
+				continue;
+			other++;
+			dark += lut.dark(row[xx]);
+		}
+	}
+	return other && dark * 2 > other ? lut.lookupPlain(c, cell) : lut.lookup(c, cell);
 }
 
 uint8_t gray565(uint16_t c) {
@@ -90,7 +119,7 @@ uint8_t gray565(uint16_t c) {
 	g = (g << 2) | (g >> 4);
 	b = (b << 3) | (b >> 2);
 	int luma = (299 * r + 587 * g + 114 * b) / 1000;
-	return quantize(luma / 255.0f, 0, false);
+	return quantize(powf(luma / 255.0f, 1.6f), 0, false);
 }
 
 void Box::extend(const Box &o) {

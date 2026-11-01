@@ -54,14 +54,32 @@ public:
 	// colors: num RGB triplets for palette entries start..start+num-1
 	void update(const uint8_t *colors, unsigned start, unsigned num);
 	uint8_t lookup(uint8_t index, int cell) const { return _lut[index][cell]; }
+	// The same colour by lightness alone (no darkening of saturated colours).
+	uint8_t lookupPlain(uint8_t index, int cell) const { return _plain[index][cell]; }
+	// A colour the paper mapping darkens a lot (saturated text such as Xeen's
+	// green "on"): readable on parchment, invisible on a dark background.
+	bool conflict(uint8_t index) const { return _conflict[index]; }
+	// A dark colour either way (e.g. Xeen's blue toggle boxes, black).
+	bool dark(uint8_t index) const { return _dark[index]; }
 
 private:
 	GrayMapParams _params;
 	uint8_t _lut[256][kBayerCells];
+	uint8_t _plain[256][kBayerCells];
+	bool _conflict[256];
+	bool _dark[256];
 };
 
-// RGB565 (ScummVM overlay) -> panel byte: plain luma, 16 levels, no dither.
-// The ScummVM GUI is drawn for colour screens and reads fine on luma.
+// One game pixel -> panel byte, looking at its surroundings: a conflict
+// colour keeps its plain lightness when most of the non-conflict pixels in
+// the 5x5 around it are dark, so green-on-blue text stays light while green
+// text on the parchment stays dark (first landscape session: Xeen's Efx and
+// Music toggles were solid black). src: w x h palette indices, pitch bytes.
+uint8_t mapPixel(const PaletteLut &lut, const uint8_t *src, int pitch, int w, int h, int x, int y, int cell);
+
+// RGB565 (ScummVM overlay) -> panel byte: luma with gamma 1.6, 16 levels,
+// no dither. The gamma darkens the mid-gray buttons of the light theme
+// (scummmodern) so their white labels stand out; black and white stay put.
 uint8_t gray565(uint16_t c);
 
 // Integer rectangle, half-open [left, right) x [top, bottom).

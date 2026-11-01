@@ -25,4 +25,6 @@ if [ -n "$LATEST" ]; then
 fi
 
 cd "$DIR" || exit 1
-exec "$BIN" --config="$DIR/scummvm.ini" --savepath="$DIR/saves" --path="$DIR/game" $SLOT mm:worldofxeen
+# The light ScummVM theme reads far better on e-ink than the built-in dark one.
+exec "$BIN" --config="$DIR/scummvm.ini" --savepath="$DIR/saves" --path="$DIR/game" \
+	--themepath="$DIR" --gui-theme=scummmodern $SLOT mm:worldofxeen
