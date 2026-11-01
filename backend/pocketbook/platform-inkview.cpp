@@ -245,6 +245,10 @@ public:
 	// when the app returns from the background or the keyboard.
 	void applyOrientation() {
 		const Layout &l = layout();
+		// The firmware's status panel is on unless an app turns it off, and it
+		// moves the picture by its height (~79 px along the canvas rows, with
+		// wrap-around: both landscape photos) and keeps our black off the panel.
+		SetPanelType(PANEL_DISABLED);
 		if (GetOrientation() != l.orientation)
 			SetOrientation(l.orientation);
 		if (ScreenWidth() != l.physW() || ScreenHeight() != l.physH())
@@ -287,7 +291,9 @@ public:
 			logf("canvas: none, using Stretch\n");
 			return;
 		}
-		logf("canvas: %dx%d scanline %d depth %d\n", cv->width, cv->height, cv->scanline, cv->depth);
+		logf("canvas: %dx%d scanline %d depth %d clip %d,%d-%d,%d; panel height %d, fb offset %d\n", cv->width,
+		     cv->height, cv->scanline, cv->depth, cv->clipx1, cv->clipy1, cv->clipx2, cv->clipy2, PanelHeight(),
+		     PanelHeightFBOffset());
 		_directBlit = cv->depth == 8 && cv->width == l.physW() && cv->height == l.physH();
 		logf("canvas: %s\n", _directBlit ? "copying the frame directly" : "size differs from the layout, using Stretch");
 	}
@@ -314,7 +320,12 @@ public:
 	void drawKeypad() {
 		if (layout().landscape()) {
 			// Nothing but the game: black around it (the frame is drawn over this).
-			FillArea(0, 0, ScreenWidth(), ScreenHeight(), BLACK);
+			// Straight into the canvas: FillArea keeps to the canvas clip.
+			icanvas *cv = GetCanvas();
+			if (_directBlit)
+				memset(cv->addr, 0, (size_t)cv->scanline * cv->height);
+			else
+				FillArea(0, 0, ScreenWidth(), ScreenHeight(), BLACK);
 			return;
 		}
 		if (!_font)
