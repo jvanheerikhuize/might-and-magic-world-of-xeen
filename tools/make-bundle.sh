@@ -12,7 +12,8 @@
 #   mmiv/game/           xeen.cc dark.cc intro.cc from ~/games/xeen (your GOG copy)
 #   mmiv/saves/          copied from ~/games/xeen/saves on first install only
 # --install copies it to the reader's internal storage (READER, default
-# /run/media/$USER/PB628) without overwriting saves already on the reader.
+# /run/media/$USER/PB628) without overwriting saves already on the reader,
+# then installs the launcher icons (tools/install-icons.py).
 set -euo pipefail
 
 root=$(cd "$(dirname "$0")/.." && pwd)
@@ -51,4 +52,6 @@ if [[ ${1:-} == --install ]]; then
 		cmp -s "$out/$f" "$dst/$f" || { echo "VERIFY FAILED: $f" >&2; exit 1; }
 	done
 	echo "installed and verified in $dst"
+	# Launcher icons and names (adds our entries to the firmware's view.json).
+	python3 -I "$root/tools/install-icons.py" "$reader"
 fi

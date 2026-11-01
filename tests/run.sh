@@ -19,6 +19,7 @@ make -s -C tests/unit
 
 echo "== launcher"
 tests/launcher/test-launcher.sh
+tests/launcher/test-install-icons.sh
 
 if [[ ! -f $HOME/games/xeen/saves/worldofxeen.000 ]]; then
 	echo "host tests skipped: no save slot 0 in ~/games/xeen/saves"
