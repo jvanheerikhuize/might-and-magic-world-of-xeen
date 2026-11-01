@@ -44,7 +44,8 @@ mmIV/
 ## 3. Display pipeline
 
 1. ScummVM gives an 8-bit paletted 320×200 game surface (plus the mouse cursor).
-2. **Palette → gray:** turn each of the 256 palette entries into an 8-bit luma value through a contrast curve (gamma + black/white points). A 256-entry LUT is rebuilt only when the palette changes.
+2. **Palette → gray:** turn each of the 256 palette entries into a gray level with the **paper mapping** chosen in Phase 0. It works on CIE L*, and darkens strongly saturated colours far in hue from the parchment, so coloured text stays readable. Plain luma fails, see Phase 0. A 256-entry LUT is rebuilt only when the palette changes. The parameters (k, chroma window, L* black/white points) are settings, and the reference implementation is `tools/eink-preview.py`.
+   - Follow-up: colours that carry meaning (HP gems, stat colours) need distinct grays or a pattern, from a small override table keyed by palette index. Also tune the mini-map contrast.
 3. **Optional ordered dither** (4×4 Bayer) to 16 levels. The Carta panel shows 16 grays; the first-person view gains the most from dithering. Toggle it in settings.
 4. **Integer 2× scale** into the InkView framebuffer at a fixed origin (portrait), with nearest-neighbour scaling for sharp pixels.
 5. **Refresh policy**, driven by dirty rectangles from `copyRectToScreen`:
@@ -82,9 +83,17 @@ Layouts live in data (`keypad-layouts.h`) so they can be adjusted without touchi
 - [x] Detection: `mm:worldofxeen` ("Might and Magic: World of Xeen (DOS/English)") and `mm:cloudsofxeen` ("Might and Magic IV: Clouds of Xeen (DOS/English)").
 - [x] Headless boot (null backend, 15 s): loads `mm.dat` from `--extrapath=scummvm/dists/engine-data`, sets a 320×200 mode, no crash. **Peak RSS ≈ 25 MB** (debug build), well under 512 MB.
 - [x] Toolchain finding for Phase 1: this ScummVM needs only **C++11** and rejects only GCC ≤ 4.7, so the SDK's GCC 6 should be enough.
-- [ ] Play into the first town with the SDL build: `tools/build-host.sh sdl` (needs `libsdl2-dev`).
-- [ ] Grayscale preview: run with a debug filter (or capture screenshots and convert them) at 16 levels, with and without dither. **Gate: the UI and automap must stay readable.** If not, tune the contrast curve before continuing.
-- [ ] Measure peak RSS while playing (boot alone is ≈ 25 MB, see above); it must fit well under 512 MB.
+- [x] Play into the first town with the SDL build (`tools/build-host.sh sdl`, then `tools/play-host.sh`). Done 2026-11-01: created a party, walked through Vertigo, talked to the mayor and a tavern patron, fought a slime, rested, and saved and quit cleanly. 34 screenshots are in `~/games/xeen/screenshots`.
+- [x] Grayscale preview with `tools/eink-preview.py` (16 levels, 4×4 Bayer dither, plus a 758×1024 portrait mock-up). **Gate: passed, but only with the "paper" mapping.**
+  - **Plain luma fails.** Xeen's green/blue/yellow value text has the same luma as the tan parchment behind it: parchment `(214,154,123)` is luma 168 and green text `(107,239,82)` is luma 181. Stats, HP/SP, gold, food and "Good" disappear, and the combat slime nearly vanishes.
+  - **The paper mapping works.** For each palette colour, gray = CIE L* − k · smoothstep(chroma 45…75) · (a*b* distance from the parchment), with L* 12…72 stretched to black…white and k = 0.9. Coloured text goes black on near-white parchment, the slime becomes a solid black shape, and sky, stone, portraits and dialogue keep their tone. This becomes the backend's palette LUT (§3).
+  - **Known losses**, carried into Phase 2/3:
+    - colour-coded meaning disappears: the party HP gems green/yellow/red, and stat colours (green normal, blue zero) all become black;
+    - the mini-map is low-contrast in paper mode;
+    - pink plaster walls become flat white.
+- [x] Peak RSS while playing about 10 minutes with the SDL build at 3× scale: **≈ 117 MB** (`~/games/xeen/rss.log`), against 25 MB for the headless boot. The difference is mostly SDL and the GPU driver; the InkView backend should land near the headless figure. Fits in 512 MB either way.
+
+**Phase 0 complete (2026-11-01).**
 
 ### Phase 1 — Toolchain smoke test (≤1 day)
 - [ ] Cross-compile a C++ hello-world with InkView using the `SDK-B288` toolchain and run it on the device. This checks that C++ (libstdc++ static, `-std=c++11`/`c++14`) works, since inkquest only proved C.
