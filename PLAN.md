@@ -111,12 +111,28 @@ Layouts live in data (`keypad-layouts.h`) so they can be adjusted without touchi
 **Phase 1 complete (2026-11-01).**
 
 ### Phase 2 — Backend on the host stub (3–5 days)
-- [ ] `backends/platform/pocketbook` with `OSystem` (timer, mutexes, filesystem via the POSIX FS node, saves), plus a graphics manager and event source.
-- [ ] Host stub build: PGM frame dumps + scripted input. Golden-frame test: boot to the title screen, start a new game, step forward 3 times.
-- [ ] The palette LUT, dither and dirty-rect merge work and are unit-tested.
+- [x] **Cross-build ScummVM with GCC 6** (`tools/build-device.sh null`, then `pocketbook`): `v2026.4.0` with Xeen compiles with **zero warnings** using the SDK's GCC 6.3. The null-backend binary is 10.5 MB stripped. No compiler workaround needed.
+- [x] `backend/pocketbook/`, linked into `scummvm/backends/platform/pocketbook` by `tools/link-backend.sh`, which also applies `patches/0001-configure-pocketbook-backend.patch` (one `configure` case). Done 2026-11-01:
+  - `pocketbook.cpp`: `OSystem` with default timers, events and saves, the POSIX filesystem, the null mixer (no audio), `mm.dat` from the app folder, and `scummvm.ini` in the app folder. Touches become move + click at game (or overlay) coordinates, and keys become key events. Xeen reads raw keys, not keymapper actions.
+  - `eink-graphics.cpp`: a 320×200 CLUT8 game screen plus a 640×400 RGB565 overlay (ScummVM's menus at native 2×). It composes the gray frame through the palette table and **diffs it against the last frame it sent**, so only real changes reach the panel. The cursor isn't drawn, since input is touch.
+  - `gray-map.cpp`: the Phase 0 paper mapping in C++, as a 256 × 16-cell table with the Bayer dither precomputed.
+  - `refresh-policy.cpp`: when and how to refresh (see below).
+  - `platform-host.cpp`: the headless host stub with scripted input (`wait`, `tap`, `tapg`, `key`, `shot`, `quit`), PGM shots and a log of every frame and every panel decision.
+  - `platform-inkview.cpp`: InkView owns the main thread and ScummVM runs on an engine thread, with a locked frame and input queue, as in Phase 1. Temporary keys: PREV/NEXT = forward/back, MENU/BACK = Esc.
+- [x] **Refresh policy, from the host-stub run** (`refresh-policy.h`). Refreshing on every engine frame would flash constantly: loading a save fades in over ~30 near-full frames, and idle sprites change a few pixels every frame. The policy:
+  - waits until the frame has been **unchanged for 80 ms**, but never more than 400 ms;
+  - refreshes changes **under 2% at most once a second**;
+  - does a **full refresh at ≥ 85%** of the frame (screen switches) or once partial updates add up to 400% of the frame. Turning and stepping (50–60%) stay partial, with no flash.
+  - Result on the smoke script: **71 engine frames → 12–13 panel updates** (4 full).
+- [x] Host-stub test `tests/host/smoke-from-save.txt`: load save slot 0, step, turn, tap the first portrait (opens the character sheet, stats readable), Esc. Shots are checked against coarse 40×25 block signatures in `tests/host/golden/` (`tools/check-golden.py`). Only the numbers are committed, never game images. Repeat runs match 98.9–100%, and a swapped-screen check fails at 30.6%, as it should. It needs the local slot-0 save in Vertigo; a new-game script that needs no save is still to do.
+- [x] Unit tests (`make -C tests/unit`, **55 passing**): the paper mapping gives the same levels as the Python reference for all sampled Xeen colours; also dither levels, the palette table, RGB565, the changed-area box, and every refresh-policy rule (settle, max wait, small-change throttle, full threshold, ghost budget, forced full). `tests/run.sh` runs everything.
+- [x] **Device build with our backend**: `tools/build-device.sh pocketbook` gives **11.2 MB** stripped with zero warnings. It uses the soft-float loader, links only libinkview, libpthread, libm and libc, and its highest glibc symbol is 2.4.
+
+**Phase 2 complete (2026-11-01).** Nothing has run on the reader yet; that's Phase 3.
 
 ### Phase 3 — On the device (1–2 weeks)
-- [ ] InkView display: the game is visible, with the refresh policy from §3.
+- [ ] Device bundle + launcher (`applications/mmiv.app` → `mmiv/scummvm`, `mm.dat`, game data, saves); first boot on the reader, and read `scummvm.log`.
+- [ ] InkView display: the game is visible, with the refresh policy from §3 (now `refresh-policy.h`). Tune its parameters on the real panel.
 - [ ] Touch keypad + hardware buttons (§4); worker-thread engine with an event queue.
 - [ ] Save/load to `/mnt/ext1/applications/scummvm-xeen/saves`; config in the same folder.
 - [ ] Handle the app losing focus and sleep/wake. Autosave and pause the engine on `EVT_BACKGROUND`, because the firmware sends `EVT_EXIT` about 10 s after Home (Phase 1). Join the engine thread on `EVT_EXIT`, and redraw fully on `EVT_FOREGROUND`.
