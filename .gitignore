@@ -1,0 +1,8 @@
+# Game data is copyrighted: never commit it
+*.CC
+*.cc.bak
+*.dat
+data/
+games/
+dist/
+build/
