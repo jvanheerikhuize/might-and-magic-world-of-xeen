@@ -1,0 +1,27 @@
+# Landscape turned the other way (buttons on the left) in Olympus (probe
+# save 31), run with
+#   pbtk --view cw run tests/device/scenarios/07-landscape-flip.txt
+# Upright coordinates are the same as in landscape; the page keys swap roles.
+note 07 landscape-flip: layout file + open probe save 31 (Olympus)
+write /mnt/ext1/applications/mmiv/layout landscape-flip
+write /mnt/ext1/applications/mmiv/resume 31
+restart
+wait 6000
+shot 07-start
+note 07 on-screen arrows: turn right and back
+tap 920 549
+expect-change
+tap 770 549
+expect-change
+wait 1500
+expect-screen 07-start 3 32 79 700 420
+note 07 page keys in the flipped layout
+key next
+expect-change
+shot 07-after-next
+key prev
+expect-change
+wait 1500
+shot 07-after-prev
+note 07 back to landscape
+write /mnt/ext1/applications/mmiv/layout landscape

@@ -1,0 +1,30 @@
+# Combat in Castle Burlock (probe save 27): a Mad Fool walks up after two
+# steps; fight with the on-screen combat buttons (attack: top left of the
+# button block, 770 332). The logo box turns into the combat panel.
+note 04 combat: open probe save 27 (Castle Burlock 1)
+write /mnt/ext1/applications/mmiv/resume 27
+restart
+wait 6000
+shot 04-start
+key next
+expect-change
+key next
+expect-change
+wait 3000
+shot 04-combat
+expect-differs 04-start 30 736 95 228 195
+note 04 attack, one tap per character
+tap 770 332
+expect-change 8000
+tap 770 332
+expect-change 8000
+tap 770 332
+expect-change 8000
+tap 770 332
+expect-change 8000
+tap 770 332
+expect-change 8000
+tap 770 332
+expect-change 8000
+wait 3000
+shot 04-after-round

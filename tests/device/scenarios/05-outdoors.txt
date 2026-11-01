@@ -1,0 +1,25 @@
+# Outdoors and the sky road: big redraws on every step (probe saves 23, 33).
+note 05 outdoors: open probe save 23 (Clouds Area A1)
+write /mnt/ext1/applications/mmiv/resume 23
+restart
+wait 6000
+shot 05-clouds
+key next
+expect-change
+key next
+expect-change
+tap 920 549
+expect-change
+key next
+expect-change
+note 05 skyroad: open probe save 33 (Skyroad A1)
+write /mnt/ext1/applications/mmiv/resume 33
+restart
+wait 6000
+shot 05-skyroad
+key next
+expect-change
+key next
+expect-change
+tap 770 549
+expect-change
