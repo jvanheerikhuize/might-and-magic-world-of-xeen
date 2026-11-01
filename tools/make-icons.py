@@ -4,7 +4,8 @@
     python3 -I tools/make-icons.py [OUTDIR]      default: packaging/icons
 
 Writes, for each launcher, NAME.bmp (normal) and NAME_f.bmp (focused: shown
-while tapped), 128x128, 8-bit palette, 16 gray levels (the panel's), as the
+while tapped), 106x106 with the crest in the middle 84 px (the stock icons
+leave a margin; a full 128 px crest looked too big next to them), 8-bit palette, 16 gray levels (the panel's), as the
 PocketBook firmware expects in applications/icons/. PNG previews go to
 OUTDIR/preview/ (not installed).
 
@@ -17,9 +18,10 @@ import sys
 
 from PIL import Image, ImageDraw, ImageFont
 
-SIZE = 128
+SIZE = 106                  # bitmap
+CONTENT = 84                # crest inside it
 SS = 4                      # supersampling
-S = SIZE * SS
+S = 128 * SS                # drawing canvas
 FONT = "/usr/share/fonts/truetype/noto/NotoSerif-Bold.ttf"
 
 INK, DARK, MID, LIGHT, PAPER = 0, 68, 136, 204, 255
@@ -116,10 +118,11 @@ def draw_icon(focused, keypad):
                 y0 = by + 22 + r * (kw + g)
                 d.rectangle([x0, y0, x0 + kw, y0 + kw], fill=fg)
 
+    small = Image.new("L", (SIZE, SIZE), PAPER)
+    off = (SIZE - CONTENT) // 2
+    small.paste(im.resize((CONTENT, CONTENT), Image.LANCZOS), (off, off))
     if focused:  # tapped: inverted
-        im = Image.eval(im, lambda v: 255 - v)
-
-    small = im.resize((SIZE, SIZE), Image.LANCZOS)
+        small = Image.eval(small, lambda v: 255 - v)
     # 16 panel levels, 8-bit palette (the firmware wants palettized 8-bit BMP)
     small = small.point(lambda v: min(255, round(v / 17) * 17))
     pal = small.convert("P", palette=Image.ADAPTIVE, colors=16)
