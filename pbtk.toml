@@ -1,0 +1,15 @@
+# pbtk (the PocketBook toolkit, ~/Repos/pocketbook_lux_5): build, deploy,
+# watch and drive mmIV on the reader. See backend/pocketbook/pbagent/README.md.
+#
+#   pbtk deploy --build --eject              first time, over USB (also writes the agent token)
+#   pbtk deploy --wifi --restart --build     then: changed files only, restart in place, no taps
+[app]
+name = "mmiv"
+# tools/make-bundle.sh output; copied to applications/ on the reader as is.
+dist = "build/bundle/applications"
+# The backend's log (relative to applications/).
+log = "mmiv/scummvm.log"
+# Incremental device build (configures on first use), then the bundle.
+build = "tools/build-device.sh pocketbook --make-only && tools/make-bundle.sh"
+# The player's saves on the reader always win over the PC's copies.
+keep = ["mmiv/saves/*"]

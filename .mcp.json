@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "pocketbook": {
+      "command": "pbtk",
+      "args": ["mcp"]
+    }
+  }
+}
