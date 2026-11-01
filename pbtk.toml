@@ -13,3 +13,6 @@ log = "mmiv/scummvm.log"
 build = "tools/build-device.sh pocketbook --make-only && tools/make-bundle.sh"
 # The player's saves on the reader always win over the PC's copies.
 keep = ["mmiv/saves/*"]
+# Screenshots upright for the default landscape layout (taps use the same
+# coordinates). With mmiv/layout set to landscape-flip use "cw"; portrait "none".
+view = "ccw"
