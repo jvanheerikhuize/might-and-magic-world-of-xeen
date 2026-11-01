@@ -1,4 +1,7 @@
 # Game data is copyrighted: never commit it
+_source/
+*.exe
+*.bin
 *.CC
 *.cc.bak
 *.dat
