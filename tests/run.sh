@@ -61,7 +61,8 @@ MMIV_LAYOUT=landscape tools/run-host-script.sh tests/host/keyboard-save.txt buil
 grep -q 'text input on' build/test-keyboard/present.log
 grep -q 'text input off' build/test-keyboard/present.log
 test -f build/test-keyboard/saves/worldofxeen.001
-echo "ok   keyboard requested for a text field; the typed name saved slot 1"
+python3 -c "import gzip,sys; sys.exit(b\"Test Save\\0\" not in gzip.open(\"build/test-keyboard/saves/worldofxeen.001\").read(64))"
+echo "ok   keyboard requested for a text field; the typed name \"Test Save\" saved slot 1"
 
 echo "== delete a save by touch"
 MMIV_SAVES_FROM=build/test-keyboard/saves MMIV_LAYOUT=landscape \
@@ -69,3 +70,7 @@ MMIV_SAVES_FROM=build/test-keyboard/saves MMIV_LAYOUT=landscape \
 test ! -e build/test-delete/saves/worldofxeen.001
 test -f build/test-delete/saves/worldofxeen.000
 echo "ok   slot 1 deleted from the load list; slot 0 kept"
+
+echo "== a burst of keys all reaches the game"
+tools/run-host-script.sh tests/host/key-burst.txt build/test-burst 0
+python3 -I tools/same-shot.py build/test-burst/b01-start.pgm build/test-burst/b03-full-circle.pgm

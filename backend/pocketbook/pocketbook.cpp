@@ -122,6 +122,20 @@ void OSystem_PocketBook::translate(const Input &in) {
 		ev.type = Common::EVENT_MAINMENU;
 		_pending.push(ev);
 		return;
+	case Input::kTextBegin:
+		// ScummVM's text fields may be pre-filled (a save's old name): typed
+		// text replaces it. Xeen's prompts always start empty.
+		if (eink()->isOverlayVisible()) {
+			ev.kbd = Common::KeyState(Common::KEYCODE_BACKSPACE, 8);
+			ev.mouse = _mouse;
+			for (int i = 0; i < kClearChars; i++) {
+				ev.type = Common::EVENT_KEYDOWN;
+				_pending.push(ev);
+				ev.type = Common::EVENT_KEYUP;
+				_pending.push(ev);
+			}
+		}
+		return;
 	case Input::kResume:
 		_suspended = false;
 		eink()->invalidate();
@@ -209,7 +223,14 @@ bool OSystem_PocketBook::pollEvent(Common::Event &event) {
 		translate(in);
 	if (_pending.empty())
 		return false;
+	// Pace key presses for the game (not ScummVM's menus, which queue freely).
+	uint32 now = getMillis();
+	if (_pending.front().type == Common::EVENT_KEYDOWN && !eink()->isOverlayVisible() &&
+	    now - _lastKeyDown < kKeyPaceMs)
+		return false;
 	event = _pending.pop();
+	if (event.type == Common::EVENT_KEYDOWN)
+		_lastKeyDown = now;
 	return true;
 }
 

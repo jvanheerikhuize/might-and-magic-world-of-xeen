@@ -58,14 +58,17 @@ private:
 
 	// Safety save every 2 minutes: a save takes ~35 ms on the reader, and the
 	// first landscape session lost ~3 minutes to a refused suspend save.
-	enum { kRetryMs = 500, kSafetySaveMs = 2 * 60 * 1000 };
+	// Key presses reach the game at most every kKeyPaceMs: Xeen keeps only 5
+	// pending events and drops the rest, so a typed name (letters + Enter)
+	// arriving at once lost everything after the fifth key.
+	enum { kRetryMs = 500, kSafetySaveMs = 2 * 60 * 1000, kKeyPaceMs = 70, kClearChars = 40 };
 
 	Platform *_platform;
 	timeval _startTime;
 	Common::Queue<Common::Event> _pending;
 	Common::Point _mouse;
 	bool _suspended = false, _suspendSaved = false, _saving = false, _textInput = false;
-	uint32 _lastSaveTry = 0, _lastSafetySave = 0, _safetySaveMs = kSafetySaveMs;
+	uint32 _lastSaveTry = 0, _lastSafetySave = 0, _safetySaveMs = kSafetySaveMs, _lastKeyDown = 0;
 };
 
 } // namespace PocketBook

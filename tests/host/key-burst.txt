@@ -1,0 +1,20 @@
+# Typed text arrives as a burst of keys. Xeen keeps only 5 pending events and
+# drops the rest, so the backend paces key presses. Six left turns sent at
+# once must all count (facing back), and two more turn the party back to
+# where it started: b03 must look like b01.
+# Run: tools/run-host-script.sh tests/host/key-burst.txt build/test-burst 0
+wait 5000
+shot b01-start
+key left
+key left
+key left
+key left
+key left
+key left
+wait 3000
+key left
+wait 1500
+key left
+wait 2000
+shot b03-full-circle
+quit

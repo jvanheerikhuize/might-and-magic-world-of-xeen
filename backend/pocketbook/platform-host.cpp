@@ -263,6 +263,9 @@ private:
 			k.type = Input::kKeyUp;
 			_queued.push_back(k);
 		} else if (cmd.compare(0, 7, "answer ") == 0) {
+			Input begin;
+			begin.type = Input::kTextBegin;  // as the reader's keyboard does
+			_queued.push_back(begin);
 			for (char c : cmd.substr(7))
 				queueKey(c >= 'A' && c <= 'Z' ? c - 'A' + 'a' : (unsigned char)c, (unsigned char)c);
 			queueKey(Common::KEYCODE_RETURN, 13);

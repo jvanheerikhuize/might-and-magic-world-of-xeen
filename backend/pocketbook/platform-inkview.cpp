@@ -328,9 +328,11 @@ public:
 		if (s) {
 			// Prompts may come with text already in the field (ScummVM's save
 			// name is pre-filled): typed text replaces it, an empty answer keeps it.
-			if (_keyboardAuto && *s)
-				for (int i = 0; i < kClearChars; i++)
-					pushKey(Common::KEYCODE_BACKSPACE, 8);
+			if (_keyboardAuto && *s) {
+				Input begin;
+				begin.type = Input::kTextBegin;  // clears a pre-filled ScummVM field
+				push(begin);
+			}
 			for (const char *p = s; *p; p++) {
 				char c = *p;
 				pushKey((c >= 'A' && c <= 'Z') ? c - 'A' + 'a' : (unsigned char)c, (unsigned char)c);
@@ -394,7 +396,7 @@ private:
 	long _wantKeyboardAt = 0;
 	// The keyboard covers the screen: open it a moment after the prompt so
 	// the question (and the field's current text) can be read first.
-	enum { kLongPressMs = 700, kKeyboardDelayMs = 1200, kClearChars = 40 };
+	enum { kLongPressMs = 700, kKeyboardDelayMs = 1200 };
 	bool _engineDone = false;
 	std::thread _engine;
 	ifont *_font = nullptr;
