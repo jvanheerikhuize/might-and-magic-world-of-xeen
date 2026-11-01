@@ -1,0 +1,17 @@
+# Load save slot 0, step, turn, open the first character, close it.
+# Run: tools/run-host-script.sh tests/host/smoke-from-save.txt build/test-smoke 0
+wait 5000
+shot 01-loaded
+key up
+wait 1000
+shot 02-forward
+key left
+wait 1000
+shot 03-turn-left
+tapg 25 165
+wait 1500
+shot 04-portrait-tap
+key esc
+wait 1000
+shot 05-esc
+quit
