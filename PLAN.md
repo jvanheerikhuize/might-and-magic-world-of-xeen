@@ -164,5 +164,8 @@ Layouts live in data (`keypad-layouts.h`) so they can be adjusted without touchi
 - Game data is copyrighted and comes from the player's own purchase. It is **never** committed or distributed here; `.gitignore` excludes it.
 
 ## 8. Next steps
-1. Phase 4: settings, battery check.
-2. Phase 5: offer the backend upstream to ScummVM.
+The device test of 2026-11-01 ([docs/device-test-2026-11-01.md](docs/device-test-2026-11-01.md)) sets the order:
+1. Dragging (`EVT_POINTERMOVE`) and an idle refresh budget (~4 partial updates/s while monsters animate).
+2. Slot 99 out of the Save list; the launcher re-reads `mmiv/layout` on a restart.
+3. Phase 4: battery check (after 1), settings.
+4. Phase 5: offer the backend upstream to ScummVM.
