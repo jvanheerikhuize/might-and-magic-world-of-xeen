@@ -37,6 +37,7 @@
 #define FORBIDDEN_SYMBOL_ALLOW_ALL
 
 #include "keypad.h"
+#include "pbagent/pbagent.h"
 #include "pocketbook.h"
 #include "refresh-policy.h"
 
@@ -413,7 +414,11 @@ public:
 			{
 				std::lock_guard<std::mutex> lk(_mu);
 				if (!_engineDone) {
+					// Save first (slot 99, as on Home) so closing the app, or a
+					// restart by pbtk, resumes where the player was.
 					Input q;
+					q.type = Input::kSuspend;
+					_input.push_back(q);
 					q.type = Input::kQuit;
 					_input.push_back(q);
 				}
@@ -494,9 +499,25 @@ bool mapKey(int ivKey, int &code, uint16_t &ascii) {
 	}
 }
 
+// pbtk's agent (pbagent/README.md): screenshots, injected input, log and
+// files over Wi-Fi for development. Off unless the reader has an agent token.
+void startAgent(InkViewPlatform *pf) {
+	static std::string logPath, launcher;
+	logPath = std::string(pf->appDir()) + "/scummvm.log";
+	// Restart through the launcher, so it resumes the newest save (slot 99).
+	launcher = std::string(pf->appDir()) + "/../mmiv.app";
+	pbagent_config cfg = {};
+	cfg.app_name = "mmiv";
+	cfg.log_path = logPath.c_str();
+	cfg.connect_wifi = 1;
+	cfg.restart_exec = launcher.c_str();
+	pbagent_start(&cfg);
+}
+
 int handler(int type, int p1, int p2) {
 	InkViewPlatform *pf = g_platform;
 	Input in;
+	pbagent_observe(type, p1, p2);  // the player's own input, for pbtk's timeline
 	switch (type) {
 	case EVT_INIT:
 		pf->applyOrientation();
@@ -507,6 +528,7 @@ int handler(int type, int p1, int p2) {
 		FullUpdate();
 		pf->startEngine();
 		SetHardTimer("mmiv_poll", InkViewPlatform::pollThunk, kPollMs);
+		startAgent(pf);  // after the engine starts: NetConnect may block briefly
 		break;
 	case EVT_POINTERDOWN:
 	case EVT_POINTERUP:
@@ -555,6 +577,7 @@ int handler(int type, int p1, int p2) {
 		pf->logf("EVT_EXIT\n");
 		pf->logStats();
 		pf->shutdown();
+		pbagent_stop();
 		break;
 	}
 	return 0;

@@ -169,6 +169,24 @@ C++ compiler and run in CI. The scripted tests need your game data in
 
 `tools/make-screenshots.sh` regenerates the screenshots above.
 
+### Develop on the reader with pbtk
+
+The device build links in pbtk's agent (`backend/pocketbook/pbagent/`), so
+[pbtk](https://github.com/jvanheerikhuize/pocketbook_lux_5) can take
+screenshots, tap, press keys, stream `scummvm.log` and redeploy over Wi-Fi
+while the game runs. The agent stays off unless the reader has pbtk's token,
+so release builds are unaffected.
+
+```sh
+pbtk deploy --build --eject            # first time, over USB: bundle + agent token
+pbtk deploy --wifi --restart --build   # after that: changed files only, restart in place
+pbtk shot; pbtk tap X Y; pbtk logs -f  # or `pbtk gui`; Claude Code uses .mcp.json
+```
+
+`pbtk.toml` keeps the saves on the reader: a deploy never overwrites them. A
+restart (and closing the app) first saves to slot 99, then runs `mmiv.app`
+again, which resumes the newest save.
+
 ## How it works
 
 ```
