@@ -1,0 +1,24 @@
+--- a/configure	2026-11-01 12:21:13.302177852 +0100
++++ b/configure	2026-11-01 12:21:13.319788532 +0100
+@@ -4382,6 +4382,21 @@
+ 		fi
+ 		_sdl=auto
+ 		;;
++	pocketbook)
++		# mmIV: PocketBook InkView backend. Cross builds for the reader link
++		# InkView; any other host builds the headless host stub.
++		append_var DEFINES "-DPOCKETBOOK"
++		case $_host in
++		arm-obreey-linux-gnueabi*)
++			append_var LIBS "-linkview -lpthread"
++			;;
++		*)
++			append_var DEFINES "-DPOCKETBOOK_HOST_STUB"
++			add_line_to_config_mk 'POCKETBOOK_HOST_STUB = 1'
++			append_var LIBS "-lpthread"
++			;;
++		esac
++		;;
+ 	psp)
+ 		append_var DEFINES "-D__PSP__"
+ 		append_var DEFINES "-DDISABLE_COMMAND_LINE"
