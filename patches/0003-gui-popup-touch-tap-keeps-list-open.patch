@@ -1,0 +1,22 @@
+GUI: keep pop-up lists open after a slow tap on touchscreens
+
+A pop-up list closes and picks the item under the pointer when the button
+is released more than 300 ms after it opened. On a touchscreen that is a
+tap, not a drag, and on slow (e-ink) screens taps take longer than that:
+the list opened and closed again on its own. With kFeatureTouchscreen an
+unmoved release always keeps the list open.
+
+--- a/gui/widgets/popup.cpp
++++ b/gui/widgets/popup.cpp
+@@ -160,7 +160,10 @@
+ 	// Mouse was released. If it wasn't moved much since the original mouse down,
+ 	// let the popup stay open. If it did move, assume the user made his selection.
+ 	int dist = (_clickX - absX) * (_clickX - absX) + (_clickY - absY) * (_clickY - absY);
+-	if (dist > 3 * 3 || g_system->getMillis() - _openTime > 300) {
++	// On a touchscreen a tap is never a drag: lifting the finger where it went
++	// down keeps the list open however long the tap took (slow screens).
++	bool slowRelease = g_system->getMillis() - _openTime > 300 && !g_system->hasFeature(OSystem::kFeatureTouchscreen);
++	if (dist > 3 * 3 || slowRelease) {
+ 		int item = findItem(x, y);
+ 
+ 		// treat separator item as if no item was clicked

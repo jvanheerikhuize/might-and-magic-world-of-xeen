@@ -23,6 +23,7 @@
 #include "backends/mutex/null/null-mutex.h"
 #include "backends/saves/default/default-saves.h"
 #include "backends/timer/default/default-timer.h"
+#include "common/config-manager.h"
 #include "common/fs.h"
 #include "common/keyboard.h"
 #include "engines/engine.h"
@@ -51,13 +52,17 @@ void OSystem_PocketBook::initBackend() {
 	_graphicsManager = new EinkGraphicsManager(_platform);
 	_mixerManager = new NullMixerManager();  // no audio on the reader
 	_mixerManager->init();
+	// Save/load as a list: names readable on e-ink, and it has a Delete
+	// button (the grid view has none). Players can still switch to the grid.
+	ConfMan.registerDefault("gui_saveload_chooser", "list");
 	BaseBackend::initBackend();
 }
 
 // The virtual keyboard feature is how engines say "now typing text"; the
 // reader's own on-screen keyboard stands in for ScummVM's.
 bool OSystem_PocketBook::hasFeature(Feature f) {
-	return f == kFeatureVirtualKeyboard || ModularGraphicsBackend::hasFeature(f);
+	// Touchscreen: ScummVM's pop-up lists stay open after a slow tap (patches/0003).
+	return f == kFeatureVirtualKeyboard || f == kFeatureTouchscreen || ModularGraphicsBackend::hasFeature(f);
 }
 
 void OSystem_PocketBook::setFeatureState(Feature f, bool enable) {
