@@ -31,10 +31,14 @@ args=(--config="$out/scummvm.ini" --path="$data/scummvm/world-of-xeen" --savepat
 	--themepath="$root/scummvm/gui/themes" --gui-theme=scummmodern)
 [[ -n $slot ]] && args+=(--save-slot="$slot")
 
+# MMIV_GDB=1 runs under gdb so a crash leaves a backtrace at the end of run.log.
+run=("$bin")
+[[ -n ${MMIV_GDB:-} ]] && run=(gdb -q -batch -ex run -ex bt -ex 'set confirm off' -ex quit --args "$bin")
+
 set +e
 MMIV_SCRIPT=$script MMIV_OUT=$out MMIV_TIMEOUT=${MMIV_TIMEOUT:-120000} \
 	MMIV_APPDIR=$root/scummvm/dists/engine-data \
-	"$bin" "${args[@]}" mm:worldofxeen >"$out/run.log" 2>&1
+	"${run[@]}" "${args[@]}" mm:worldofxeen >"$out/run.log" 2>&1
 rc=$?
 set -e
 echo "exit $rc; shots: $(ls "$out"/*.pgm 2>/dev/null | wc -l); $(grep '^summary' "$out/present.log" 2>/dev/null || echo 'no summary')"
