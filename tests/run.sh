@@ -83,3 +83,13 @@ echo "ok   thumb drag and finger swipe both scroll the save list"
 echo "== a burst of keys all reaches the game"
 tools/run-host-script.sh tests/host/key-burst.txt build/test-burst 0
 python3 -I tools/same-shot.py build/test-burst/b01-start.pgm build/test-burst/b03-full-circle.pgm
+
+echo "== e-ink cues: automap arrow, dark position line, save list after death"
+MMIV_LAYOUT=landscape tools/run-host-script.sh tests/host/eink-cues.txt build/test-cues 0
+# A blinking arrow made two map shots differ; a steady one gives identical shots.
+python3 -I tools/pixel-diff.py build/test-cues/c01-map.pgm build/test-cues/c02-map.pgm 0 0
+# Without the cue a turn in the dark changes nothing (0%); the line ~0.3%.
+python3 -I tools/pixel-diff.py build/test-cues/c03-dark.pgm build/test-cues/c04-dark-turned.pgm 0.1
+grep -q 'The party died: opening the save list' build/test-cues/run.log
+grep -q 'slot 5 "Alive again" saved' build/test-cues/run.log
+echo "ok   steady automap arrow; position line in the dark; restore list after death"

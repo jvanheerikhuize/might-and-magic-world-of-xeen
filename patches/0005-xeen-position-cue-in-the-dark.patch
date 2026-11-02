@@ -1,0 +1,26 @@
+Xeen: show direction and position when it is too dark to see
+
+Without light in a dark maze the 3D view is filled black, so a step or a
+turn changes nothing on the screen; on e-ink there is no feedback at all.
+Write "Too dark to see" with the facing and the map position into the
+view (window 3, like door and sign text) while the scene is black and no
+monsters are being fought.
+
+--- a/engines/mm/xeen/interface.cpp
++++ b/engines/mm/xeen/interface.cpp
+@@ -1373,6 +1373,15 @@
+ 		_ttsPreviousScreenText = _screenText;
+ 	} else {
+ 		_ttsPreviousScreenText.clear();
++
++		// mmIV: without light the view is all black, so a step or turn
++		// changes nothing on screen. Show where the party stands instead.
++		if (_obscurity == OBSCURITY_BLACK && combat._attackMonsters[0] == -1) {
++			windows[3].writeString(Common::String::format(
++				"\f15\x03""c\t116\v056Too dark to see\n%s  %d, %d\x03""l\fd",
++				Res.DIRECTION_TEXT[party._mazeDirection],
++				party._mazePosition.x, party._mazePosition.y), false);
++		}
+ 	}
+ 
+ 	if (updateFlag) {
