@@ -1,0 +1,42 @@
+# E-ink gameplay cues (patches 0005-0007), from save slot 0 in Vertigo.
+# Run: MMIV_LAYOUT=landscape tools/run-host-script.sh tests/host/eink-cues.txt build/test-cues 0
+wait 5000
+# Automap: the party arrow stays drawn (no blink), so two shots match.
+key m
+wait 1500
+shot c01-map
+wait 1300
+shot c02-map
+key esc
+wait 1000
+# Dark mine (Dwarf Mine 1): a turn changes the "Too dark to see" line.
+debugger
+wait 1200
+answer map 33 8 8 0
+wait 2000
+shot c03-dark
+key right
+wait 1500
+shot c04-dark-turned
+# Xeen's Castle kills a level-1 party within a few steps; after the death
+# screen the restore list opens (extra keys before it are harmless). Row "0." (frame 95,135), Restore (805,502).
+debugger
+wait 1200
+answer map 75 8 8 0
+wait 2000
+key up
+wait 4000
+key up
+wait 4000
+key up
+wait 4000
+key up
+wait 25000
+shot c05-after-death
+tap 127 214
+wait 1500
+tap 837 581
+wait 6000
+savegame 5 Alive again
+wait 1000
+quit
