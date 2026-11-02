@@ -34,6 +34,9 @@
 //                      game's 320x200 screen in its own colours, for tuning the mapping)
 //   suspend / resume   app sent to / back from the background (suspend saves to slot 99)
 //   menu               open the ScummVM menu (MENU held on the reader)
+//   debugger           open the engine's debugger console; type into it with
+//                      "answer CMD" (Xeen: map ID [X Y] [SIDE], pos X Y, gold N, ...)
+//   savegame SLOT NAME save to SLOT under NAME now (if the game allows it)
 //   answer TEXT        type TEXT + Enter, as the reader's keyboard does when
 //                      the game asks for text (logged as "text input on")
 //   quit               send EVENT_QUIT
@@ -289,6 +292,16 @@ private:
 			for (char c : cmd.substr(7))
 				queueKey(c >= 'A' && c <= 'Z' ? c - 'A' + 'a' : (unsigned char)c, (unsigned char)c);
 			queueKey(Common::KEYCODE_RETURN, 13);
+		} else if (cmd == "debugger") {
+			Input d;
+			d.type = Input::kDebugger;
+			_queued.push_back(d);
+		} else if (sscanf(cmd.c_str(), "savegame %d %n", &a, &b) == 1 && b > 0) {
+			Input s;
+			s.type = Input::kSaveSlot;
+			s.keycode = a;
+			snprintf(s.text, sizeof s.text, "%s", cmd.c_str() + b);
+			_queued.push_back(s);
 		} else if (cmd == "menu") {
 			Input m;
 			m.type = Input::kMainMenu;

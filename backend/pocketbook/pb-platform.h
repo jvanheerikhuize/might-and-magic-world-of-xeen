@@ -30,12 +30,16 @@ struct Input {
 	// pre-filled field first where that is needed (ScummVM's menus).
 	// kTouchMove: the finger moved while down, past a small threshold so taps
 	// stay taps (drags: scrollbars, sliders, lists).
-	enum Type { kNone, kTouchDown, kTouchUp, kTouchMove, kKeyDown, kKeyUp, kQuit, kSuspend, kResume, kMainMenu, kTextBegin };
+	// kDebugger / kSaveSlot: host-stub test scripts only (open the engine's
+	// debugger console; save to slot `keycode` named `text`).
+	enum Type { kNone, kTouchDown, kTouchUp, kTouchMove, kKeyDown, kKeyUp, kQuit, kSuspend, kResume, kMainMenu, kTextBegin,
+	            kDebugger, kSaveSlot };
 	Type type = kNone;
 	int x = 0, y = 0;        // touch: panel coordinates
 	int keycode = 0;         // key: Common::KeyCode value
 	uint16_t ascii = 0;
 	uint8_t flags = 0;       // key: Common::KBD_* modifiers
+	char text[40] = {0};     // kSaveSlot: save description
 };
 
 // Save slot written when the app goes to the background (the firmware ends

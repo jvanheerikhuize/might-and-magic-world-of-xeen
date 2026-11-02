@@ -1,0 +1,36 @@
+# Portrait with the touch keypad in Castleview (probe save 30), run with
+#   pbtk --view none run tests/device/scenarios/06-portrait-keypad.txt
+# Frame 640x400 at (59, 24); keypad rows centred at y 484 580 676 772 868 964
+# (backend/pocketbook/keypad.cpp). Logo box while exploring: 529 34 160 120.
+# The layout file is read again on a restart (launcher), so no fresh start.
+note 06 portrait: layout file + open probe save 30 (Castleview)
+write /mnt/ext1/applications/mmiv/layout portrait
+write /mnt/ext1/applications/mmiv/resume 30
+restart
+wait 6000
+shot 06-start
+note 06 movement pad: turn right, turn left (same view), forward
+tap 304 484
+expect-change
+tap 70 484
+expect-change
+wait 1500
+expect-screen 06-start 3 59 24 640 400
+tap 187 484
+expect-change
+note 06 command keys: Info, then Esc
+tap 601 580
+expect-change
+shot 06-info
+key back
+expect-change
+note 06 party key 1 (character sheet), Esc on the keypad
+tap 73 676
+expect-change
+shot 06-character
+tap 85 964
+expect-change
+wait 1000
+expect-screen 06-start 2 529 34 160 120
+note 06 back to landscape for the next scenarios
+write /mnt/ext1/applications/mmiv/layout landscape

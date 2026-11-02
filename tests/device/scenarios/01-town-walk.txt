@@ -1,0 +1,39 @@
+# Town walk in Vertigo (probe save 20): steps, turns, the party screens.
+# Coordinates: upright landscape (pbtk view ccw), panel = frame + (32, 79).
+# The "Might and Magic" logo box (736 95 228 195) shows only while exploring.
+note 01 town walk: open probe save 20 (Vertigo)
+write /mnt/ext1/applications/mmiv/resume 20
+restart
+wait 6000
+shot 01-start
+note 01 walk with the page keys
+key next
+expect-change
+key next
+expect-change
+key prev
+expect-change
+note 01 turn right and back with the on-screen arrows: the same view again
+tap 920 549
+expect-change
+tap 770 549
+expect-change
+wait 1500
+expect-screen 01-start 3 32 79 700 420
+note 01 character sheet, then back to exploring
+tap 110 574
+expect-change
+shot 01-character
+expect-differs 01-start 30 736 95 228 195
+key back
+expect-change
+wait 1000
+expect-screen 01-start 2 736 95 228 195
+note 01 quests, then back
+tap 920 394
+expect-change
+shot 01-quests
+key back
+expect-change
+wait 1000
+expect-screen 01-start 2 736 95 228 195

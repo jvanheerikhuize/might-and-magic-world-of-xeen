@@ -1,0 +1,20 @@
+# Dark mine without light (probe save 25): the view stays black, so a step
+# gives no visible feedback on e-ink (expect-change may time out: that is the
+# finding, not a failure of the reader).
+note 03 dark dungeon: open probe save 25 (Dwarf Mine 1)
+write /mnt/ext1/applications/mmiv/resume 25
+restart
+wait 6000
+shot 03-start
+note 03 quick reference chart, then back
+tap 920 456
+expect-change
+shot 03-quickref
+key back
+expect-change
+wait 1000
+expect-screen 03-start 2 736 95 228 195
+note 03 a step forward in the dark: does anything on the panel change?
+key next
+wait 2500
+shot 03-after-step

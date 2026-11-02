@@ -1,0 +1,16 @@
+# Night town Nightshadow (probe save 21): walking and the automap.
+note 02 night town: open probe save 21 (Nightshadow)
+write /mnt/ext1/applications/mmiv/resume 21
+restart
+wait 6000
+shot 02-start
+key next
+expect-change
+key next
+expect-change
+note 02 automap
+tap 770 456
+expect-change
+shot 02-automap
+key back
+expect-change
