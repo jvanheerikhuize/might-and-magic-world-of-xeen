@@ -600,6 +600,28 @@ int handler(int type, int p1, int p2) {
 		break;
 	case EVT_ORIENTATION:
 		return 1;  // keep our orientation; ignore the g-sensor
+	case kDevEvent:  // pbtk test scripts (pb-platform.h)
+		switch (p1) {
+		case kDevDebugger:
+			in.type = Input::kDebugger;
+			pf->push(in);
+			break;
+		case kDevKey:
+			pf->pushKey(p2 & 0xFFFF, (uint16_t)((unsigned)p2 >> 16));
+			break;
+		case kDevTextBegin:
+			in.type = Input::kTextBegin;
+			pf->push(in);
+			break;
+		case kDevSave:
+			in.type = Input::kSaveSlot;
+			in.keycode = p2;
+			strcpy(in.text, "speedrun");
+			pf->push(in);
+			break;
+		}
+		pf->logf("dev event %d %d\n", p1, p2);
+		return 1;
 	case EVT_EXIT:
 		pf->logf("EVT_EXIT\n");
 		pf->logStats();

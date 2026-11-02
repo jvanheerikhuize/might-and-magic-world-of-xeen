@@ -30,8 +30,9 @@ struct Input {
 	// pre-filled field first where that is needed (ScummVM's menus).
 	// kTouchMove: the finger moved while down, past a small threshold so taps
 	// stay taps (drags: scrollbars, sliders, lists).
-	// kDebugger / kSaveSlot: host-stub test scripts only (open the engine's
-	// debugger console; save to slot `keycode` named `text`).
+	// kDebugger / kSaveSlot: test scripts only, from the host stub or from
+	// pbtk's agent on the reader (kDevEvent): open the engine's debugger
+	// console; save to slot `keycode` named `text`.
 	enum Type { kNone, kTouchDown, kTouchUp, kTouchMove, kKeyDown, kKeyUp, kQuit, kSuspend, kResume, kMainMenu, kTextBegin,
 	            kDebugger, kSaveSlot };
 	Type type = kNone;
@@ -47,6 +48,16 @@ struct Input {
 // hold the player's own save, so a separate slot is used. The launcher
 // resumes the most recently written save.
 enum { kSuspendSaveSlot = 99 };
+
+// Development input on the reader, injected over Wi-Fi with pbtk's agent
+// (`event 28013 OP ARG`; the agent needs its token, so players never send it).
+// It lets a test script do what the host stub's script commands do:
+//   kDevDebugger   open the engine's debugger console
+//   kDevKey        press and release a key: ARG = keycode | ascii << 16
+//   kDevTextBegin  typed text follows (as from the reader's keyboard)
+//   kDevSave       save to slot ARG, named "speedrun"
+enum { kDevEvent = 0x6D6D };  // 'mm': far above InkView's EVT_* numbers
+enum DevOp { kDevDebugger = 1, kDevKey = 2, kDevTextBegin = 3, kDevSave = 4 };
 
 class Platform {
 public:
