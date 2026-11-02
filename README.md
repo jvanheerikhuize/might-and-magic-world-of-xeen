@@ -1,8 +1,8 @@
-# mmIV — Might and Magic: World of Xeen on a PocketBook e-reader
+#Might and Magic: World of Xeen on a PocketBook e-reader
 
-Play **Might and Magic IV & V (World of Xeen)** on a **PocketBook Touch Lux 5**
-e-ink reader. mmIV is a [ScummVM](https://www.scummvm.org/) backend for
-PocketBook's InkView SDK, tuned for a turn-based game on a 16-gray, slow
+Play **Might and Magic IV & V (World of Xeen)** on a **[PocketBook Touch Lux 5](https://github.com/jvanheerikhuize/pocketbook_lux_5)**
+e-ink reader. This repo is a [ScummVM](https://www.scummvm.org/) backend for
+[PocketBook's InkView SDK](https://github.com/blchinezu/pocketbook-sdk), tuned for a turn-based game on a 16-gray, slow
 panel: a colour-to-gray mapping that keeps text readable, a refresh policy
 that keeps ghosting down without flashing, touch play, and saves that survive
 the reader going to sleep.
@@ -13,7 +13,7 @@ Xeen is turn-based and only redraws when you act, which suits e-ink. At 3x
 the game fills the panel (960x600 of 1024x758) and its own icons are large
 enough to tap.
 
-> You need your own copy of the game (World of Xeen is sold by GOG). No game
+> You need your own copy of the game (World of Xeen is sold by [GOG](https://www.gog.com/en/game/might_and_magic_6_limited_edition)). No game
 > data is included here or in the release.
 
 ## Screenshots
@@ -52,7 +52,7 @@ take whichever gray stands out from their surroundings, then a Bayer dither:
   tested on U628.6.9. Other 1024x758 PocketBooks with firmware 6.x may work;
   reports are welcome.
 - **Might and Magic: World of Xeen** data files `xeen.cc`, `dark.cc`,
-  `intro.cc`. GOG sells it as "Might and Magic 4-5" (Windows installer).
+  `intro.cc`. [GOG](https://www.gog.com/en/game/might_and_magic_6_limited_edition) sells it as "Might and Magic 4-5" (Windows installer).
 - No sound: the reader has no audio output.
 
 ## Install
