@@ -251,8 +251,7 @@ def device(outdir: pathlib.Path, agent_addr: str | None) -> int:
         log.write(line + "\n"); log.flush()
 
     def key(name):
-        code, ascii_ = keycode(name)
-        ag.event(DEV_EVENT, DEV_KEY, code | ascii_ << 16)
+        ag.event(DEV_EVENT, DEV_KEY, keycode(name)[0])  # the reader derives the ASCII
 
     def restart_into(slot):
         old = ag.info().get("started", "")

@@ -53,9 +53,12 @@ enum { kSuspendSaveSlot = 99 };
 // (`event 28013 OP ARG`; the agent needs its token, so players never send it).
 // It lets a test script do what the host stub's script commands do:
 //   kDevDebugger   open the engine's debugger console
-//   kDevKey        press and release a key: ARG = keycode | ascii << 16
+//   kDevKey        press and release a key: ARG = ScummVM keycode (the
+//                  firmware keeps only 16 bits; the ASCII follows from it)
 //   kDevTextBegin  typed text follows (as from the reader's keyboard)
 //   kDevSave       save to slot ARG, named "speedrun"
+// The first dev event also stops the reader's own keyboard from opening when
+// the game asks for text: the script types the answer as keys.
 enum { kDevEvent = 0x6D6D };  // 'mm': far above InkView's EVT_* numbers
 enum DevOp { kDevDebugger = 1, kDevKey = 2, kDevTextBegin = 3, kDevSave = 4 };
 
