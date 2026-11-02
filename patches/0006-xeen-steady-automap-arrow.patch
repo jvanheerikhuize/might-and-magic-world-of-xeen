@@ -1,0 +1,47 @@
+Xeen: steady party arrow on the automap, also on unexplored cells
+
+The arrow blinked (drawn every other half second): on e-ink a blink is
+either missed or costs a panel refresh twice a second. Indoors the overlay
+for cells not stepped on was drawn over the arrow, so a party without a
+Cartographer never saw where it stood. Keep the arrow drawn and draw it
+again on top of that overlay.
+
+--- a/engines/mm/xeen/dialogs/dialogs_map.cpp
++++ b/engines/mm/xeen/dialogs/dialogs_map.cpp
+@@ -84,6 +84,7 @@
+ 	bool ttsVoiceText = true;
+ 
+ 	events.updateGameCounter();
++	_frameEndFlag = true;
+ 	do {
+ 		if (drawFlag)
+ 			intf.draw3d(false, false);
+@@ -102,11 +103,10 @@
+ 				Common::Point(_arrowPt.x + 76, _arrowPt.y + 25));
+ 		}
+ 
+-		if (events.timeElapsed() > 5) {
+-			// Set the flag to make the basic arrow blinking effect
+-			_frameEndFlag = !_frameEndFlag;
+-			events.updateGameCounter();
+-		}
++		// mmIV: no blinking arrow. On e-ink a blink is either missed (the
++		// arrow looks absent) or costs a panel refresh twice a second; the
++		// party arrow stays drawn instead.
++		_frameEndFlag = true;
+ 
+ 		windows[5].writeString(Common::String::format(Res.MAP_TEXT,
+ 			map._mazeName.c_str(), party._mazePosition.x,
+@@ -465,6 +465,12 @@
+ 				map._tileSprites.draw(0, 1, Common::Point(xp, yp));
+ 		}
+ 	}
++
++	// mmIV: the overlay above hides the party arrow on cells not marked as
++	// stepped on (always, without a Cartographer in the party). Draw it on
++	// top so the map always shows where the party stands.
++	_globalSprites.draw(0, party._mazeDirection + 1,
++		Common::Point(_arrowPt.x + 81, _arrowPt.y + 29));
+ }
+ 
+ } // End of namespace Xeen

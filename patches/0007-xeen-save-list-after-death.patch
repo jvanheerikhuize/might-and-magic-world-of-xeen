@@ -1,0 +1,67 @@
+Xeen: after the party dies, open the save list; fix a death-screen hang
+
+After the death screen the game went back to the title menu, and the
+player had to find Load there. Open the restore dialog straight away
+(cancel still leads to the menu). The mode is set to MODE_STARTUP before
+the death screen, so no save (a backend's safety save) is made of the dead
+party meanwhile.
+
+The death screen's last loop, while (isSoundPlaying()) wait(1, false),
+never polled events once a frame had passed; with a mixer that advances
+from pollEvent (the reader's null mixer) the sound never ended and the
+game hung. Poll while waiting.
+
+--- a/engines/mm/xeen/worldofxeen/worldofxeen.cpp
++++ b/engines/mm/xeen/worldofxeen/worldofxeen.cpp
+@@ -111,8 +111,11 @@
+ 			idx = 23;
+ 	}
+ 
+-	while (_sound->isSoundPlaying())
+-		_events->wait(1, false);
++	// mmIV: wait(1) returns at once once a frame has passed, without polling.
++	// With a mixer driven from pollEvent (the reader's null mixer) the laugh
++	// never ended and this loop spun forever. Poll while waiting.
++	while (_sound->isSoundPlaying() && !shouldExit())
++		_events->pollEventsAndWait();
+ 
+ 	_screen->blitFrom(savedBg);
+ 	w.update();
+--- a/engines/mm/xeen/xeen.cpp
++++ b/engines/mm/xeen/xeen.cpp
+@@ -24,6 +24,7 @@
+ #include "common/debug-channels.h"
+ #include "common/events.h"
+ #include "engines/util.h"
++#include "gui/saveload.h"
+ #include "mm/xeen/xeen.h"
+ #include "mm/xeen/files.h"
+ #include "mm/xeen/resources.h"
+@@ -308,11 +309,24 @@
+ 
+ 	gameLoop();
+ 
+-	if (_party->_dead)
+-		death();
+-
+ 	_mode = MODE_STARTUP;
+ 	_gameMode = GMODE_MENU;
++
++	if (_party->_dead) {
++		death();
++
++		// mmIV: after the death screen go straight to the save list (the
++		// reader's safety save is usually the latest), not the title menu
++		// with its Load button. Cancelling still leads to the menu.
++		warning("The party died: opening the save list");
++		GUI::SaveLoadChooser *dialog = new GUI::SaveLoadChooser(false);
++		int slot = dialog->runModalWithCurrentTarget();
++		delete dialog;
++		if (slot != -1) {
++			_loadSaveSlot = slot;
++			_gameMode = GMODE_PLAY_GAME;
++		}
++	}
+ }
+ 
+ void XeenEngine::gameLoop() {
