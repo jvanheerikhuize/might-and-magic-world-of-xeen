@@ -186,6 +186,13 @@ public:
 			_input.push_back(in);
 	}
 
+	// A dev event's script types its text as keys; the reader's own keyboard
+	// would cover the screen and answer Escape when it is dismissed.
+	void scripted() {
+		std::lock_guard<std::mutex> lk(_mu);
+		_scripted = true;
+	}
+
 	void pushKey(int code, uint16_t ascii) {
 		Input in;
 		in.keycode = code;
@@ -219,7 +226,7 @@ public:
 		bool done, keyboard;
 		{
 			std::lock_guard<std::mutex> lk(_mu);
-			keyboard = _wantKeyboard && !_keyboardOpen && nowMs() - _wantKeyboardAt >= kKeyboardDelayMs;
+			keyboard = _wantKeyboard && !_keyboardOpen && !_scripted && nowMs() - _wantKeyboardAt >= kKeyboardDelayMs;
 			op = _policy.poll(nowMs());
 			done = _engineDone;
 			if (op.kind != RefreshOp::kNone)
@@ -472,6 +479,8 @@ private:
 	int _touchesLogged = 0;
 	bool _directBlit = false;
 	bool _wantKeyboard = false, _keyboardOpen = false, _keyboardAuto = false;
+	// Set by the first dev event: a script types instead of the reader's keyboard.
+	bool _scripted = false;
 	long _menuDownAt = 0;
 	bool _menuDone = true;
 	long _wantKeyboardAt = 0;
@@ -534,6 +543,16 @@ void startAgent(InkViewPlatform *pf) {
 	cfg.connect_wifi = 1;
 	cfg.restart_exec = launcher.c_str();
 	pbagent_start(&cfg);
+}
+
+// The firmware passes only 16 bits of an event's parameters, so a dev key
+// carries just the ScummVM keycode; the ASCII follows from it.
+static uint16_t devAscii(int code) {
+	if (code >= Common::KEYCODE_F1 && code <= Common::KEYCODE_F12)
+		return Common::ASCII_F1 + (code - Common::KEYCODE_F1);
+	if (code == 8 || code == 9 || code == 13 || code == 27 || (code >= 32 && code < 127))
+		return code;
+	return 0;  // arrows and the like
 }
 
 int handler(int type, int p1, int p2) {
@@ -600,6 +619,29 @@ int handler(int type, int p1, int p2) {
 		break;
 	case EVT_ORIENTATION:
 		return 1;  // keep our orientation; ignore the g-sensor
+	case kDevEvent:  // pbtk test scripts (pb-platform.h)
+		pf->scripted();
+		switch (p1) {
+		case kDevDebugger:
+			in.type = Input::kDebugger;
+			pf->push(in);
+			break;
+		case kDevKey:
+			pf->pushKey(p2, devAscii(p2));
+			break;
+		case kDevTextBegin:
+			in.type = Input::kTextBegin;
+			pf->push(in);
+			break;
+		case kDevSave:
+			in.type = Input::kSaveSlot;
+			in.keycode = p2;
+			strcpy(in.text, "speedrun");
+			pf->push(in);
+			break;
+		}
+		pf->logf("dev event %d %d\n", p1, p2);
+		return 1;
 	case EVT_EXIT:
 		pf->logf("EVT_EXIT\n");
 		pf->logStats();
